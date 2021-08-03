@@ -19,6 +19,11 @@
         group: "{{ ansible_env.USER }}"
         mode: 0644
       with_items: "{{ dotfiles_list }}"
+  always:
+    - name: reload all user's services on the current machine
+      systemd:
+        daemon_reload: true
+        scope: user
   when: ansible_distribution | lower == "fedora"
   tags:
     - dotfiles
