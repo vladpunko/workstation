@@ -152,3 +152,7 @@ required_python_packages:
   - virtualenv
   - virtualenvwrapper
   - youtube-dl
+
+required_user_services:
+  - services/emacs.service
+  - services/notebook.service
