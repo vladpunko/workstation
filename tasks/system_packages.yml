@@ -1,0 +1,46 @@
+---
+- name: install system dependencies and updates
+  become: true
+  become_method: sudo
+  block:
+    - name: select the fastest mirror from the fedora public mirrors for the main package manager
+      ini_file:
+        path: /etc/dnf/dnf.conf
+        section: main
+        option: fastestmirror
+        value: "true" # it should be a quoted string to avoid change issues
+
+    - name: add the required public keys to the main system database for free and non-free repositories
+      rpm_key:
+        key: "{{ item }}"
+        state: present
+      with_items:
+        - "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-{{ rpmfusion_key_version }}"
+        - "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-nonfree-fedora-{{ rpmfusion_key_version }}"
+
+    - name: install free and non-free repositories to provide extra packages for the current operating system
+      dnf:
+        name:
+          - "https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ rpmfusion_distribution_version }}.noarch.rpm"
+          - "https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ rpmfusion_distribution_version }}.noarch.rpm"
+        state: present
+
+    - name: check the repositories for newer packages and updates them
+      dnf:
+        name: "*"
+        state: latest
+        update_cache: true
+
+    - name: install the required development tools on the current operating system
+      dnf:
+        name: "{{ required_development_tools }}"
+        state: latest
+        update_cache: true
+
+    - name: clean up packages installed as dependencies but which are no longer required
+      dnf:
+        autoremove: true
+  when: ansible_distribution | lower == "fedora"
+  tags:
+    - packages
+    - packages-workstation

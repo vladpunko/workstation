@@ -1,0 +1,154 @@
+---
+rpmfusion_distribution_version: 33
+
+# Set the version of the required public keys for this system distribution.
+# See information: https://rpmfusion.org/keys
+rpmfusion_key_version: 2020
+
+required_development_tools:
+  - ShellCheck
+  - VirtualBox
+  - ansible
+  - atool
+  - bash
+  - bat
+  - bc
+  - ccrypt
+  - chromium
+  - chromium-libs
+  - chromium-libs-media-freeworld
+  - clamav
+  - clamav-update
+  - cloc
+  - cmake
+  - colordiff
+  - ctags
+  - curl
+  - dconf-editor
+  - deadbeef
+  - discord
+  - dnf-automatic
+  - docker
+  - dropbox
+  - emacs
+  - fd-find
+  - ffmpeg
+  - firefox
+  - fzf
+  - gcc
+  - gdb
+  - gimp
+  - git
+  - git-extras
+  - git-gui
+  - git-lfs
+  - git-secret
+  - gnome-tweak-tool
+  - gnupg
+  - gnuplot
+  - graphviz
+  - grep
+  - gzip
+  - htop
+  - httpie
+  - ioping
+  - iotop
+  - jq
+  - julia
+  - keepass
+  - kernel-devel
+  - kernel-headers
+  - lapack
+  - less
+  - libcgroup-tools
+  - libpng-devel
+  - libtiff-devel
+  - libyaml-devel
+  - lnav
+  - lshw
+  - lynis
+  - make
+  - makeself
+  - mc
+  - md5deep
+  - mediawriter
+  - megasync
+  - mercurial
+  - mosh
+  - nano
+  - ncdu
+  - nmap
+  - okular
+  - openblas
+  - openssh
+  - openssh-server
+  - p7zip
+  - pandoc
+  - patch
+  - pigz
+  - pipenv
+  - pipx
+  - pkg-config
+  - postgresql
+  - postgresql-server
+  - pypy
+  - pypy3
+  - python2
+  - python2-devel
+  - python3
+  - python3-devel
+  - rclone
+  - rsync
+  - seahorse
+  - sqlite
+  - stow
+  - supervisor
+  - sysstat
+  - telegram-desktop
+  - texlive
+  - texstudio
+  - the_silver_searcher
+  - thunderbird
+  - tig
+  - timeshift
+  - tmux
+  - transmission
+  - tree
+  - unrar
+  - unzip
+  - vagrant
+  - vlc
+  - vmtouch
+  - wget
+  - xclip
+  - xz
+
+miniconda_version: 4.9.2
+
+# Set the preferred version of the main python interpreter on the current machine.
+# See information: https://wiki.archlinux.org/title/python
+miniconda_python_version: py39
+
+miniconda_installer_checksum: md5:b4e46fcc8029e2cfa731b788f25b1d36
+
+required_python_packages:
+  - auditwheel
+  - black
+  - flake8
+  - isort
+  - joblib
+  - jupyter
+  - jupyterlab
+  - mypy
+  - pdir2
+  - pre-commit
+  - psutil
+  - pylint
+  - sshuttle
+  - tmuxp
+  - tqdm
+  - trash-cli
+  - twine
+  - virtualenv
+  - virtualenvwrapper
+  - youtube-dl

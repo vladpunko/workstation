@@ -1,0 +1,6 @@
+---
+- hosts: all
+
+  tasks:
+    - include_tasks: tasks/system_packages.yml
+    - include_tasks: tasks/python_packages.yml
