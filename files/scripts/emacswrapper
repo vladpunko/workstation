@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# Copyright 2020 (c) Vladislav Punko <iam.vlad.punko@gmail.com>
+
+set -o errexit
+set -o nounset
+
+# Create a new working session of the preferred text editor with a specific socket name and open a determined path on the current machine.
+exec emacsclient --alternate-editor='emacs --no-window-system' --create-frame --socket-name="${XDG_CONFIG_HOME}/emacs/server_socket/server" --suppress-output --tty --quiet -- "$@"
