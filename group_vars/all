@@ -160,6 +160,8 @@ required_user_services:
 dotfiles_list:
   - { src: dotfiles/dot_condarc, dest: ~/.conda/condarc }
   - { src: dotfiles/dot_flake8rc, dest: ~/.config/flake8 }
+  - { src: dotfiles/dot_gitconfig, dest: ~/.config/git/config }
+  - { src: dotfiles/dot_gitignore_global, dest: ~/.config/git/gitignore_global }
   - { src: dotfiles/dot_mypy.ini, dest: ~/.config/mypy/config }
   - { src: dotfiles/dot_notebookrc, dest: ~/.jupyter/jupyter_notebook_config.py }
   - { src: dotfiles/dot_pip.conf, dest: ~/.config/pip/pip.conf }

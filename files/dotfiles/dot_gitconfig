@@ -1,0 +1,79 @@
+[alias]
+  # Attach actual revisions to the previous commit.
+  amend = commit --amend --reuse-message=HEAD
+
+  # Show both remote-tracking branches and branches on the current machine.
+  branches = branch --all --ignore-case
+
+  # Clone a repository including all submodules.
+  c = clone --recursive
+
+  # Show the entire commit graph of a local working repository on the current machine with some additional details.
+  la = log --pretty=format:'%C(red)%h%C(reset) %C(yellow)%an: %C(reset)%s %C(green)(%cr)' --graph --date=relative
+
+  # Update the current working tree and all its submodules.
+  p = pull --recurse-submodules
+
+  # Show the remote server settings.
+  remotes = remote --verbose
+
+  # Find and remove all branches that have been merged with the main branch in a local working repository on the current machine.
+  rmb = !git branch --merged | grep --extended-regexp --invert-match '(^\\*|develop|main|master)' | xargs git branch --delete
+
+  # Show the current working tree status using the shortest format.
+  st = status --short
+
+  # Show active tags of the current working tree.
+  tags = tag --list
+
+  # Reverse a previous commit in the current working tree.
+  uncommit = reset --soft HEAD^
+
+  # Reset the current working stage.
+  unstage = reset HEAD
+
+[color]
+  ui = auto
+
+[core]
+  # Set the preferred text editor on the current machine.
+  editor = emacs --no-window-system
+
+  # Set custom patterns of names to exclude unneeded untracked contents.
+  excludesfile = ~/.config/git/gitignore_global
+
+  # Ignore the time difference between the index and the current working tree.
+  trustctime = false
+
+  # Fix the issue with the unicode decomposition of filenames in a local working repository.
+  precomposeUnicode = false
+
+[credential]
+  # Update the main storage time for user's credentials of the active session.
+  helper = cache --timeout=3600
+
+[diff]
+  # Set the patches comparison system.
+  algorithm = patience
+
+[fetch]
+  # Automatic cleaning is to be made in the current working tree.
+  prune = true
+
+[pull]
+  # Automatic recombination is to be made in the current working tree.
+  rebase = true
+
+[push]
+  # Push into the current branch.
+  default = simple
+
+[status]
+  # Show the working tree status and all its submodules.
+  submoduleSummary = true
+
+[user]
+  email = iam.vlad.punko@gmail.com
+
+  # Set the current user's name.
+  name = Vladislav Punko
