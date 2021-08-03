@@ -156,3 +156,11 @@ required_python_packages:
 required_user_services:
   - services/emacs.service
   - services/notebook.service
+
+dotfiles_list:
+  - { src: dotfiles/dot_condarc, dest: ~/.conda/condarc }
+  - { src: dotfiles/dot_flake8rc, dest: ~/.config/flake8 }
+  - { src: dotfiles/dot_mypy.ini, dest: ~/.config/mypy/config }
+  - { src: dotfiles/dot_notebookrc, dest: ~/.jupyter/jupyter_notebook_config.py }
+  - { src: dotfiles/dot_pip.conf, dest: ~/.config/pip/pip.conf }
+  - { src: dotfiles/dot_pylintrc, dest: ~/.config/pylintrc }
