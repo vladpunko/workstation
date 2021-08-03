@@ -1,0 +1,7 @@
+[FORMAT]
+# Set a new size restriction.
+max-line-length = 100
+
+[MESSAGES CONTROL]
+# Set and suppress unwanted codes of warnings and error messages on the current machine.
+disable = C0103,C0111,R0901,R0902,R0903,R0904,R0911,R0912,R0913,R0914

@@ -1,0 +1,3 @@
+[flake8]
+# Set a new size restriction.
+max-line-length = 100

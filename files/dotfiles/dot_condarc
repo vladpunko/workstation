@@ -1,0 +1,12 @@
+# Restrict automatic package updates.
+auto_update_conda: false
+
+channels:
+  - anaconda
+  - bioconda
+  - conda-forge
+  - defaults
+  - pytorch
+
+# Show resource addresses.
+show_channel_urls: true
