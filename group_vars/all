@@ -122,6 +122,7 @@ required_development_tools:
   - wget
   - xclip
   - xz
+  - yank
 
 miniconda_version: 4.9.2
 
@@ -166,3 +167,5 @@ dotfiles_list:
   - { src: dotfiles/dot_notebookrc, dest: ~/.jupyter/jupyter_notebook_config.py }
   - { src: dotfiles/dot_pip.conf, dest: ~/.config/pip/pip.conf }
   - { src: dotfiles/dot_pylintrc, dest: ~/.config/pylintrc }
+  - { src: dotfiles/dot_tmux_session, dest: ~/.config/tmuxp/main.yml }
+  - { src: dotfiles/dot_tmux.conf, dest: ~/.config/tmux/tmux.conf }
