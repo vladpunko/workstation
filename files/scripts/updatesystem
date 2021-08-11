@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+# Copyright 2020 (c) Vladislav Punko <iam.vlad.punko@gmail.com>
+
+set -o errexit
+set -o nounset
+
+# Ask for the administrator's password in advance.
+sudo --validate
+
+# Keep-alive: update existing user's password timestamp until this script finishes on the current machine.
+while true; do sudo --non-interactive true; sleep 60; kill -s 0 "$$" || exit; done 2> /dev/null &
+
+if [[ -f /etc/redhat-release ]] && grep --ignore-case --quiet fedora /etc/redhat-release; then
+  # Check the repositories for newer packages and updates them.
+  sudo dnf update --refresh --assumeyes
+
+  # Clean all package cache.
+  sudo dnf clean all
+fi
+
+# Update the main virus database on the current machine.
+sudo freshclam --show-progress
+
+# Update all programs and packages of the main scientific computation system.
+"${HOME}/.miniconda/bin/conda" update --update-all --yes
