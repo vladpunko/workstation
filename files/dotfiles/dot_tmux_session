@@ -1,0 +1,26 @@
+# Use this name creating a new program session.
+session_name: tmux-main
+
+windows:
+  - window_name: editor
+    panes:
+      # Create a new window with the main working session of the preferred text editor with a specific socket name on the current machine.
+      - emacsclient --create-frame --socket-name="${XDG_CONFIG_HOME}/emacs/server_socket/server" --suppress-output --tty --quiet
+
+  - window_name: monitor
+    panes:
+      # Create a new window with the preferred process viewer on the current machine.
+      - htop --no-mouse --delay=10 --sort-key=PERCENT_MEM
+
+  - window_name: organizer
+    panes:
+      # Create a new window with the preferred file manager on the current machine.
+      - mc --color --nomouse -- "${HOME}" "${HOME}"
+
+  - window_name: interactive-session
+    # Use this window when starting a new program session.
+    focus: true
+
+    panes:
+      # Create a new window with the main interactive session on the current machine.
+      - exec env --chdir="${HOME}" -- "${SHELL}" --login
