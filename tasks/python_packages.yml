@@ -8,34 +8,44 @@
         # Set the main path where to install miniconda on the current machine.
         miniconda_home: ~/.miniconda
 
+        miniconda_executable: ~/.miniconda/bin/conda
+
         # Select the main package manager to install and update python dependencies.
         miniconda_pip: ~/.miniconda/bin/pip
 
-    - name: download the miniconda installer from a remote server to the current machine
-      get_url:
-        url: "https://repo.continuum.io/miniconda/Miniconda3-{{ miniconda_python_version }}_{{ miniconda_version }}-Linux-{{ ansible_architecture }}.sh"
-        checksum: "{{ miniconda_installer_checksum }}"
-        dest: "{{ miniconda_installer }}"
-        timeout: 600 # when downloading the miniconda installer it might take a while
-        owner: "{{ ansible_env.USER }}"
-        group: "{{ ansible_env.USER }}"
-        mode: 0755
+    - name: check for miniconda existence on the current machine
+      stat:
+        path: "{{ miniconda_executable }}"
+      changed_when: false
+      register: miniconda_conda_executable
 
-    - name: install miniconda dependencies and packages on the current operating system
-      script: "{{ miniconda_installer }} -b -p {{ miniconda_home }}" # run a local script on the current machine
-      args:
-        creates: "{{ miniconda_home }}"
+    - block:
+        - name: download the miniconda installer from a remote server to the current machine
+          get_url:
+            url: "https://repo.continuum.io/miniconda/Miniconda3-{{ miniconda_python_version }}_{{ miniconda_version }}-Linux-{{ ansible_architecture }}.sh"
+            checksum: "{{ miniconda_installer_checksum }}"
+            dest: "{{ miniconda_installer }}"
+            timeout: 600 # when downloading the miniconda installer it might take a while
+            owner: "{{ ansible_env.USER }}"
+            group: "{{ ansible_env.USER }}"
+            mode: 0755
+
+        - name: install miniconda dependencies and packages on the current operating system
+          script: "{{ miniconda_installer }} -b -p {{ miniconda_home }}" # run a local script on the current machine
+          args:
+            creates: "{{ miniconda_home }}"
+      always:
+        - name: delete the downloaded installer from the current machine
+          file:
+            path: "{{ miniconda_installer }}"
+            state: absent
+      when: not miniconda_conda_executable.stat.exists
 
     - name: install the required python packages on the current operating system
       pip:
         executable: "{{ miniconda_pip }}"
         name: "{{ required_python_packages }}"
         state: latest
-  always:
-    - name: delete the downloaded installer from the current machine
-      file:
-        path: "{{ miniconda_installer }}"
-        state: absent
   when: ansible_distribution | lower == "fedora"
   tags:
     - python
