@@ -1,0 +1,35 @@
+"\033[B": history-search-forward
+"\033[A": history-search-backward
+
+# Suppress attempts to generate noise in the current interactive session.
+set bell-style off
+
+# Use case-insensitive auto-complete.
+set completion-ignore-case on
+
+# Use bracketed paste mode in the current interactive session.
+# See information: https://cirw.in/blog/bracketed-paste
+set enable-bracketed-paste on
+
+# Show all matches when there more than one possible completions.
+set show-all-if-ambiguous on
+
+# Show further type information when listing possible completions.
+set visible-stats on
+
+# Ignore hidden system content while auto-completing.
+set match-hidden-files off
+
+# Use markers to indicate the matching strings when listing completions.
+set colored-completion-prefix on
+
+# Mark directories links with a specific character.
+set mark-symlinked-directories on
+
+# Reinstate the entire word via expansion.
+set skip-completed-text on
+
+# Fix input and output encoding on the current machine.
+set input-meta on
+set output-meta on
+set convert-meta off
