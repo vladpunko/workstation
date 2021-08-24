@@ -1,0 +1,2 @@
+# Truncate user's previous output in the current interactive session.
+/usr/bin/clear && /usr/bin/reset

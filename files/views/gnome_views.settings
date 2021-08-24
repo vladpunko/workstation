@@ -1,0 +1,52 @@
+[system/locale]
+# Set the main encoding for the current operating system.
+region='en_US.UTF-8'
+
+[org/gnome/shell]
+favorite-apps=['org.gnome.Nautilus.desktop', 'org.gnome.Terminal.desktop', 'chromium-browser.desktop', 'firefox.desktop', 'emacs.desktop']
+
+[org/gtk/settings/file-chooser]
+show-hidden=true
+
+[org/gnome/desktop/interface]
+show-battery-percentage=true
+
+[org/gnome/desktop/calendar]
+show-weekdate=false
+
+[org/gnome/desktop/privacy]
+remember-recent-files=false
+report-technical-problems=false
+
+[org/gnome/desktop/datetime]
+automatic-timezone=false
+
+[org/gnome/desktop/input-sources]
+xkb-options=@as []
+per-window=true
+current=uint32 0
+mru-sources=[('xkb', 'us'), ('xkb', 'ru')]
+sources=[('xkb', 'us'), ('xkb', 'ru')]
+
+[org/gnome/system/location]
+enabled=false
+
+[org/gnome/desktop/notifications]
+show-in-lock-screen=false
+
+[org/gnome/desktop/media-handling]
+autorun-never=true
+
+[org/gnome/terminal/legacy]
+menu-accelerator-enabled=false
+shortcuts-enabled=false
+
+[org/gnome/terminal/legacy/profiles:]
+default='ff1c04d4-2842-4f34-b5ac-726f3bcba249'
+list=['ff1c04d4-2842-4f34-b5ac-726f3bcba249']
+
+[org/gnome/terminal/legacy/profiles:/:ff1c04d4-2842-4f34-b5ac-726f3bcba249]
+scrollbar-policy='never'
+
+# Suppress attempts to generate noise in the current interactive session.
+audible-bell=false

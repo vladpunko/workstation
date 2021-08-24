@@ -91,6 +91,7 @@ required_development_tools:
   - pkg-config
   - postgresql
   - postgresql-server
+  - pwgen
   - pypy
   - pypy3
   - python2
@@ -159,13 +160,22 @@ required_user_services:
   - services/notebook.service
 
 dotfiles_list:
+  - { src: dotfiles/dot_aliases.bash, dest: ~/.config/bash/aliases.bash }
+  - { src: dotfiles/dot_bash_logout, dest: ~/.bash_logout }
+  - { src: dotfiles/dot_bash_profile, dest: ~/.bash_profile }
+  - { src: dotfiles/dot_bashrc, dest: ~/.bashrc }
   - { src: dotfiles/dot_condarc, dest: ~/.conda/condarc }
+  - { src: dotfiles/dot_exports.bash, dest: ~/.config/bash/exports.bash }
   - { src: dotfiles/dot_flake8rc, dest: ~/.config/flake8 }
+  - { src: dotfiles/dot_functions.bash, dest: ~/.config/bash/functions.bash }
   - { src: dotfiles/dot_gitconfig, dest: ~/.config/git/config }
   - { src: dotfiles/dot_gitignore_global, dest: ~/.config/git/gitignore_global }
+  - { src: dotfiles/dot_hushlogin, dest: ~/.hushlogin }
+  - { src: dotfiles/dot_inputrc, dest: ~/.inputrc }
   - { src: dotfiles/dot_mypy.ini, dest: ~/.config/mypy/config }
   - { src: dotfiles/dot_notebookrc, dest: ~/.jupyter/jupyter_notebook_config.py }
   - { src: dotfiles/dot_pip.conf, dest: ~/.config/pip/pip.conf }
   - { src: dotfiles/dot_pylintrc, dest: ~/.config/pylintrc }
   - { src: dotfiles/dot_tmux_session, dest: ~/.config/tmuxp/main.yml }
   - { src: dotfiles/dot_tmux.conf, dest: ~/.config/tmux/tmux.conf }
+  - { src: views/gnome_views.css, dest: ~/.config/gtk-3.0/gtk.css } # some tweaks for the main terminal emulator

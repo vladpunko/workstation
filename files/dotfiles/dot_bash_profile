@@ -1,0 +1,4 @@
+if [[ -f "${HOME}/.bashrc" ]]; then
+  # Load user's main settings into the current interactive session.
+  source "${HOME}/.bashrc"
+fi

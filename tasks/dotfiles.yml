@@ -19,6 +19,11 @@
         group: "{{ ansible_env.USER }}"
         mode: 0644
       with_items: "{{ dotfiles_list }}"
+
+    - name: set user's settings for the main graphical user interface on the current operating system
+      shell: dconf load / < files/views/gnome_views.settings # restore the main desktop settings
+      args:
+        chdir: "{{ playbook_dir }}" # change the current working directory before running this command
   always:
     - name: reload all user's services on the current machine
       systemd:

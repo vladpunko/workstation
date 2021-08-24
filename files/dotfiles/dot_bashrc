@@ -1,0 +1,43 @@
+if [[ -f /etc/bashrc ]]; then
+  # Load the main settings of the current operating system.
+  source /etc/bashrc
+fi
+
+source "${HOME}/.config/bash/aliases.bash"
+source "${HOME}/.config/bash/exports.bash"
+source "${HOME}/.config/bash/functions.bash"
+
+# Create a new meta storage of the executed commands.
+shopt -s checkhash
+
+# Check the size of the current screen.
+shopt -s checkwinsize
+
+# Use recursive commands expansion.
+shopt -s globstar 2> /dev/null
+
+# Use case-insensitive expansion.
+shopt -s nocaseglob
+
+# Save the executed commands to the main history storage.
+shopt -s histappend
+
+# Load all programs and packages of the main scientific computation system on the current machine.
+source "${HOME}/.miniconda/etc/profile.d/conda.sh" 2> /dev/null
+
+# Start the preferred environment management system for user's python interpreters on the current machine.
+source -- "$(command -v virtualenvwrapper.sh)" 2> /dev/null
+
+_fzf_dirs=(
+  /usr/local/opt/fzf
+  /usr/local/share/examples/fzf
+  /usr/share/fzf
+)
+for _fzf_dir in "${_fzf_dirs[@]}"; do
+  if [[ -d "${_fzf_dir}" ]]; then
+    # Load the key combinations of the preferred command-line finder on the current machine.
+    source "${_fzf_dir}/shell/key-bindings.bash"
+    break
+  fi
+done
+unset -v _fzf_dir _fzf_dirs
