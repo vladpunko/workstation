@@ -16,7 +16,7 @@
         dest: "{{ fonts_folder }}"
 
     - name: install the required fonts on the current operating system
-      script: "{{ fonts_installation_script }}"
+      command: "{{ fonts_installation_script }}"
   always:
     - name: delete the downloaded fonts package from the current machine
       file:

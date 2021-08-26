@@ -31,7 +31,7 @@
             mode: 0755
 
         - name: install miniconda dependencies and packages on the current operating system
-          script: "{{ miniconda_installer }} -b -p {{ miniconda_home }}" # run a local script on the current machine
+          command: "{{ miniconda_installer }} -b -p {{ miniconda_home }}" # run a local script on the current machine
           args:
             creates: "{{ miniconda_home }}"
       always:
