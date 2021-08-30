@@ -2,7 +2,7 @@
 
 Vagrant.configure("2") do |config|
   config.vm.define "devbox" do |devbox_config|
-    devbox_config.vm.box = "fedora/33-cloud-base"
+    devbox_config.vm.box = "fedora/34-cloud-base"
     devbox_config.vm.hostname = "devbox"
     devbox_config.vm.network "forwarded_port", guest: 22, host: 2200
     devbox_config.vm.box_check_update = false
