@@ -161,6 +161,7 @@ required_user_services:
 
 required_user_scripts:
   - scripts/emacswrapper
+  - scripts/gitmirror
   - scripts/updatesystem
 
 dotfiles_list:
