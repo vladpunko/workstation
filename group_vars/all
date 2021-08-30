@@ -159,6 +159,10 @@ required_user_services:
   - services/emacs.service
   - services/notebook.service
 
+required_user_scripts:
+  - scripts/emacswrapper
+  - scripts/updatesystem
+
 dotfiles_list:
   - { src: dotfiles/dot_aliases.bash, dest: ~/.config/bash/aliases.bash }
   - { src: dotfiles/dot_bash_logout, dest: ~/.bash_logout }
