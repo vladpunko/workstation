@@ -1,5 +1,5 @@
 ---
-rpmfusion_distribution_version: 33
+rpmfusion_distribution_version: 34
 
 # Set the version of the required public keys for this system distribution.
 # See information: https://rpmfusion.org/keys
@@ -28,6 +28,7 @@ required_development_tools:
   - deadbeef
   - discord
   - dnf-automatic
+  - dnf-plugin-system-upgrade
   - docker
   - dropbox
   - emacs
