@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 # Copyright 2020 (c) Vladislav Punko <iam.vlad.punko@gmail.com>
 
@@ -11,7 +11,7 @@ sudo --validate
 # Keep-alive: update existing user's password timestamp until this script finishes on the current machine.
 while true; do sudo --non-interactive true; sleep 60; kill -s 0 "$$" || exit; done 2> /dev/null &
 
-if [[ -f /etc/redhat-release ]] && grep --ignore-case --quiet fedora /etc/redhat-release; then
+if [ -f /etc/redhat-release ] && grep --ignore-case --quiet fedora /etc/redhat-release; then
   # Check the repositories for newer packages and updates them.
   sudo dnf update --refresh --assumeyes
 
