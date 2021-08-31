@@ -102,6 +102,7 @@ required_development_tools:
   - rclone
   - rsync
   - seahorse
+  - shc
   - sqlite
   - stow
   - supervisor

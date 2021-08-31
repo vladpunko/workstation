@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 # Copyright 2020 (c) Vladislav Punko <iam.vlad.punko@gmail.com>
 
@@ -18,7 +18,7 @@ _print_success() {
 }
 
 # Check the number of arguments passed to this script.
-if [[ "$#" -ne 2 ]]; then
+if [ "$#" -ne 2 ]; then
   _print_error "You are to use: $(basename -- "$0") <source: URL> <destination: URL>" >&2
   # Stop this program runtime and return the exit status code.
   exit 1
@@ -30,9 +30,9 @@ src_url="$1"
 dst_url="$2"
 
 # Ask the current user to approve and continue this dangerous process.
-read -r -p 'Do you want to mirror this repository? [Y/n]: ' answer
+_print_info 'Do you want to mirror this repository? [Y/n]: ' && read -r answer
 
-if [[ "${answer}" =~ ^[yY][eE][sS]|[yY]$ ]]; then
+if [ "${answer}" != "${answer#[Yy]}" ]; then
   _print_info "Fetching from ${src_url} into ${dst_url}..."
 
   # Create a new repository without a working tree on the current machine.
