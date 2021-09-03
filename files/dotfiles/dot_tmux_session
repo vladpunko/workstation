@@ -5,7 +5,7 @@ windows:
   - window_name: editor
     panes:
       # Create a new window with the main working session of the preferred text editor with a specific socket name on the current machine.
-      - emacsclient --create-frame --socket-name="${XDG_CONFIG_HOME}/emacs/server_socket/server" --suppress-output --tty --quiet
+      - emacsclient --create-frame --socket-name="${HOME}/.emacs.d/server-socket/server" --suppress-output --tty --quiet
 
   - window_name: monitor
     panes:

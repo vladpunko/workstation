@@ -172,9 +172,12 @@ dotfiles_list:
   - { src: dotfiles/dot_bash_profile, dest: ~/.bash_profile }
   - { src: dotfiles/dot_bashrc, dest: ~/.bashrc }
   - { src: dotfiles/dot_condarc, dest: ~/.conda/condarc }
+  - { src: dotfiles/dot_editorconfig, dest: ~/.editorconfig }
+  - { src: dotfiles/dot_emacs.el, dest: ~/.emacs.d/init.el }
   - { src: dotfiles/dot_exports.bash, dest: ~/.config/bash/exports.bash }
   - { src: dotfiles/dot_flake8rc, dest: ~/.config/flake8 }
   - { src: dotfiles/dot_functions.bash, dest: ~/.config/bash/functions.bash }
+  - { src: dotfiles/dot_gdbinit, dest: ~/.gdbinit }
   - { src: dotfiles/dot_gitconfig, dest: ~/.config/git/config }
   - { src: dotfiles/dot_gitignore_global, dest: ~/.config/git/gitignore_global }
   - { src: dotfiles/dot_hushlogin, dest: ~/.hushlogin }
