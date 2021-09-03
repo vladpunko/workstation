@@ -24,7 +24,7 @@ alias grep='grep --color=auto'
 alias tm='tmux attach || tmux new-session'
 
 # Connect or create a new working session of the preferred text editor with a specific socket name and open a determined path on the current machine.
-alias e='emacsclient --create-frame --socket-name="${XDG_CONFIG_HOME}/emacs/server_socket/server" --suppress-output --tty --quiet'
+alias e='emacsclient --create-frame --socket-name="${HOME}/.emacs.d/server-socket/server" --suppress-output --tty --quiet'
 
 # Create a new working session of the preferred file manager on the current machine.
 alias mc='mc --color --nomouse --skin=modarin256'
