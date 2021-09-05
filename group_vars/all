@@ -56,7 +56,7 @@ required_development_tools:
   - iotop
   - jq
   - julia
-  - keepass
+  - keepassxc
   - kernel-devel
   - kernel-headers
   - lapack
