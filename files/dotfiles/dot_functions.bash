@@ -5,6 +5,9 @@ archive() {
 
 g() {
   if [[ -z "$1" ]]; then
+    # Show the current user's name and email address in the main working tree.
+    printf "%s <%s>\\n" "$(git config user.name)" "$(git config user.email)"
+
     # Show the working tree status.
     git status --branch --short
   else

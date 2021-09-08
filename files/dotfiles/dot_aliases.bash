@@ -3,10 +3,10 @@ alias -- +x='chmod +x'
 # Start a proper python interpreter regarding the working user's environment on the current machine.
 alias ipython='python -c "import IPython; IPython.terminal.ipapp.launch_new_instance()"'
 
-alias ..='cd ..'
-alias ...='cd ../..'
-alias ....='cd ../../..'
-alias .....='cd ../../../..'
+alias ..='cd .. && pwd'
+alias ...='cd ../.. && pwd'
+alias ....='cd ../../.. && pwd'
+alias .....='cd ../../../.. && pwd'
 
 alias -- -='cd -'
 
@@ -55,6 +55,8 @@ alias myip='dig +short myip.opendns.com @resolver1.opendns.com'
 
 # Convert and combine some documents into one outcome document and save it on the current machine.
 alias mergepdf='gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=_output.pdf'
+
+alias pyclean='find "${PWD}" -name "*.py[cod]" -o -name "__pycache__" -exec rm --force --recursive {} +'
 
 # Copy the provided text data to the system clipboard.
 alias pbcopy='xclip -selection clipboard -in'
