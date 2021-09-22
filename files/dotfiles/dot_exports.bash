@@ -1,4 +1,10 @@
-export PATH="${HOME}/.miniconda/bin:${HOME}/bin:${HOME}/.local/bin:/usr/local/bin:/usr/local/sbin${PATH:+:${PATH}}"
+export PYENV_ROOT="${HOME}/.pyenv"
+
+# Set the main settings for all python interpreters.
+export PYTHONDONTWRITEBYTECODE=1
+export PYTHONIOENCODING=UTF-8
+
+export PATH="${PYENV_ROOT}/bin:${HOME}/.miniconda/bin:${HOME}/bin:${HOME}/.local/bin:/usr/local/bin:/usr/local/sbin${PATH:+:${PATH}}"
 
 # Set the full path used to execute the current instance of the main interactive system.
 export SHELL=/bin/bash
@@ -54,10 +60,6 @@ export PAGER=less
 # Fix the issue with the preferred encryption program on the current machine.
 # See information: https://stackoverflow.com/questions/39494631
 GPG_TTY="$(tty)"; export GPG_TTY
-
-# Set the main settings for all python interpreters.
-export PYTHONDONTWRITEBYTECODE=1
-export PYTHONIOENCODING=UTF-8
 
 # Set the standard arguments for the preferred command-line fuzzy finder on the current machine.
 export FZF_DEFAULT_OPTS='--height=50% --info=inline --layout=reverse'

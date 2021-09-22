@@ -6,6 +6,8 @@ rpmfusion_distribution_version: 34
 rpmfusion_key_version: 2020
 
 required_development_tools:
+  - '@C Development Tools and Libraries' # some c and c++ dependencies
+  - '@Development tools'
   - ShellCheck
   - VirtualBox
   - ansible
@@ -13,12 +15,15 @@ required_development_tools:
   - bash
   - bat
   - bc
+  - bzip2
+  - bzip2-devel
   - ccrypt
   - chromium
   - chromium-libs
   - chromium-libs-media-freeworld
   - clamav
   - clamav-update
+  - clang
   - cloc
   - cmake
   - colordiff
@@ -62,6 +67,7 @@ required_development_tools:
   - lapack
   - less
   - libcgroup-tools
+  - libffi-devel
   - libpng-devel
   - libtiff-devel
   - libyaml-devel
@@ -83,6 +89,8 @@ required_development_tools:
   - openblas
   - openssh
   - openssh-server
+  - openssl
+  - openssl-devel
   - p7zip
   - pandoc
   - patch
@@ -100,10 +108,12 @@ required_development_tools:
   - python3
   - python3-devel
   - rclone
+  - readline-devel
   - rsync
   - seahorse
   - shc
   - sqlite
+  - sqlite-devel
   - stow
   - supervisor
   - sysstat
@@ -114,6 +124,7 @@ required_development_tools:
   - thunderbird
   - tig
   - timeshift
+  - tk-devel
   - tmux
   - transmission
   - tree
@@ -125,7 +136,9 @@ required_development_tools:
   - wget
   - xclip
   - xz
+  - xz-devel
   - yank
+  - zlib-devel
 
 miniconda_version: 4.9.2
 

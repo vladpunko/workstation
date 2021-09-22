@@ -13,6 +13,9 @@
         # Select the main package manager to install and update python dependencies.
         miniconda_pip: ~/.miniconda/bin/pip
 
+        # Set the directory under which python versions and shims reside.
+        pyenv_home: ~/.pyenv
+
     - name: check for miniconda existence on the current machine
       stat:
         path: "{{ miniconda_executable }}"
@@ -40,6 +43,13 @@
             path: "{{ miniconda_installer }}"
             state: absent
       when: not miniconda_conda_executable.stat.exists
+
+    - name: install the main tool to download and compile the wanted python version
+      git:
+        repo: "https://github.com/pyenv/pyenv.git"
+        clone: true
+        version: master # the preferred version of this package
+        dest: "{{ pyenv_home }}"
 
     - name: install the required python packages on the current operating system
       pip:
