@@ -9,7 +9,7 @@
   c = clone --recursive
 
   # Show the entire commit graph of a local working repository on the current machine with some additional details.
-  la = log --pretty=format:'%C(red)%h%C(reset) %C(yellow)%an: %C(reset)%s %C(green)(%cr)' --graph --date=relative
+  la = log --pretty=format:'%C(red)%h%C(reset) %C(yellow)%an: %C(cyan)%d %C(reset)%s %C(green)(%cr)' --graph --date=relative
 
   # Update the current working tree and all its submodules.
   p = pull --recurse-submodules

@@ -18,9 +18,9 @@ required_development_tools:
   - bzip2
   - bzip2-devel
   - ccrypt
-  - chromium
-  - chromium-libs
-  - chromium-libs-media-freeworld
+  # - chromium
+  # - chromium-libs
+  # - chromium-libs-media-freeworld
   - clamav
   - clamav-update
   - clang
@@ -37,6 +37,7 @@ required_development_tools:
   - docker
   - dropbox
   - emacs
+  - epiphany
   - fd-find
   - ffmpeg
   - firefox
@@ -71,6 +72,7 @@ required_development_tools:
   - libpng-devel
   - libtiff-devel
   - libyaml-devel
+  - lm_sensors
   - lnav
   - lshw
   - lynis
