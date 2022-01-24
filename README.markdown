@@ -16,6 +16,9 @@ python3 -m pip install --user --requirement=requirements.txt
 
 # Step -- 4.
 ansible-playbook --ask-become-pass --inventory=hosts workstation.yml
+
+# Step -- 5.
+sudo ./install-pycharm.sh
 ```
 
 ## Firmware
