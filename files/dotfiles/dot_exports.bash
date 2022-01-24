@@ -47,6 +47,9 @@ eval -- "$(dircolors --bourne-shell)"
 # Set the user's preferred prompt string for the working operating system on the current machine.
 export PS1="\\[\\033[32;1m\\]\\u@\\H\\[\\033[m\\]:\\[\\033[34;1m\\]\\W\\[\\033[0m\\]\\$ "
 
+# Show the exit code of the last user's command in the current interactive session.
+export PROMPT_COMMAND='echo "return status: $?"'
+
 # Set the main text editor for the current operating system.
 export ALTERNATE_EDITOR=emacs
 export EDITOR=emacswrapper
