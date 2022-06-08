@@ -1,6 +1,8 @@
 # workstation
 
-"${HOME}" sweet "${HOME}"
+```bash
+echo "${HOME} sweet ${HOME}"
+```
 
 ## Installation
 
