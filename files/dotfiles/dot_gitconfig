@@ -35,6 +35,9 @@
 [color]
   ui = auto
 
+[commit]
+  gpgsign = true
+
 [core]
   # Set the preferred text editor on the current machine.
   editor = emacs --no-window-system
@@ -72,8 +75,13 @@
   # Show the working tree status and all its submodules.
   submoduleSummary = true
 
+[gpg]
+  program = gpg2
+
 [user]
   email = iam.vlad.punko@gmail.com
 
   # Set the current user's name.
   name = Vladislav Punko
+
+  signingkey = F82DC310FE9F8F548F338D20CD1527FCFAB2E424

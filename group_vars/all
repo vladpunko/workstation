@@ -1,5 +1,5 @@
 ---
-rpmfusion_distribution_version: 35
+rpmfusion_distribution_version: 36
 
 # Set the version of the required public keys for this system distribution.
 # See information: https://rpmfusion.org/keys
@@ -19,9 +19,9 @@ required_development_tools:
   - bzip2
   - bzip2-devel
   - ccrypt
-  - chromium
-  - chromium-libs
-  - chromium-libs-media-freeworld
+  # - chromium
+  # - chromium-libs
+  # - chromium-libs-media-freeworld
   - clamav
   - clamav-update
   - clang
@@ -125,7 +125,7 @@ required_development_tools:
   - stow
   - supervisor
   - sysstat
-  - telegram-desktop
+  - telegram
   - texlive
   - texstudio
   - the_silver_searcher
@@ -146,6 +146,7 @@ required_development_tools:
   - xz
   - xz-devel
   - yank
+  - yubikey-manager
   - zlib-devel
 
 miniconda_version: 4.9.2
@@ -182,7 +183,7 @@ required_python_packages:
   - virtualenvwrapper
   - youtube-dl
 
-required_user_services:
+required_user_services:  # sudo systemctl restart pcscd
   - services/emacs.service
   - services/notebook.service
 
@@ -205,12 +206,14 @@ dotfiles_list:
   - { src: dotfiles/dot_gdbinit, dest: ~/.gdbinit }
   - { src: dotfiles/dot_gitconfig, dest: ~/.config/git/config }
   - { src: dotfiles/dot_gitignore_global, dest: ~/.config/git/gitignore_global }
+  - { src: dotfiles/dot_gpg.conf, dest: ~/.gnupg/gpg.conf }
   - { src: dotfiles/dot_hushlogin, dest: ~/.hushlogin }
   - { src: dotfiles/dot_inputrc, dest: ~/.inputrc }
   - { src: dotfiles/dot_mypy.ini, dest: ~/.config/mypy/config }
   - { src: dotfiles/dot_notebookrc, dest: ~/.jupyter/jupyter_notebook_config.py }
   - { src: dotfiles/dot_pip.conf, dest: ~/.config/pip/pip.conf }
   - { src: dotfiles/dot_pylintrc, dest: ~/.config/pylintrc }
+  - { src: dotfiles/dot_scdaemon.conf, dest: ~/.gnupg/scdaemon.conf }
   - { src: dotfiles/dot_tmux_session, dest: ~/.config/tmuxp/main.yml }
   - { src: dotfiles/dot_tmux.conf, dest: ~/.config/tmux/tmux.conf }
   - { src: views/gnome_views.css, dest: ~/.config/gtk-3.0/gtk.css } # some tweaks for the main terminal emulator
