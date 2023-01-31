@@ -203,12 +203,6 @@
   :init
   (load-theme 'monokai t))
 
-(use-package xclip
-  :ensure t
-  :if (eq system-type 'gnu/linux)
-  :init
-  (xclip-mode t))
-
 (use-package buffer-move
   :ensure t
   :bind (("C-c <down>" . buf-move-down)

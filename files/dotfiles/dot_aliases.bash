@@ -53,7 +53,7 @@ alias c='clear'
 alias r='reset'
 
 # Get information about the public network address assigned to the current machine.
-alias myip='dig +short myip.opendns.com @resolver1.opendns.com'
+alias myip='curl --disable "https://checkip.amazonaws.com"'
 
 # Convert and combine some documents into one outcome document and save it on the current machine.
 alias mergepdf='gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=_output.pdf'

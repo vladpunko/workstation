@@ -12,7 +12,7 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 13
 fi
 
-version=2022.2.1
+version=2022.3.2
 
 pycharm_archive=/tmp/pycharm.tar.gz
 # Use this reserved directory to install additional software packages.

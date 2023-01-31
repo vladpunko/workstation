@@ -2,6 +2,12 @@ root = true
 
 [*]
 charset = utf-8
+
+# Set unix-style newlines to ensure consistent formatting across files.
 end_of_line = lf
+
+# Ensure that each file ends with a newline character when saved.
 insert_final_newline = true
+
+# Eliminate any whitespace characters preceding the newline characters.
 trim_trailing_whitespace = true

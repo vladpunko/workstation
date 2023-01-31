@@ -1,6 +1,10 @@
 ---
 - name: set user's settings for programs and packages
   block:
+    - name: install the requred visual studio code extensions on the current machine
+      shell: code --install-extension "{{ item }}"
+      with_items: "{{ required_vscode_extensions }}"
+
     - name: create new directories to store user's settings on the current machine
       file:
         path: "{{ item.dest | dirname }}" # get the absolute path to store this file on the current machine

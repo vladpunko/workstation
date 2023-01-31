@@ -1,5 +1,5 @@
 ---
-rpmfusion_distribution_version: 36
+rpmfusion_distribution_version: 37
 
 # Set the version of the required public keys for this system distribution.
 # See information: https://rpmfusion.org/keys
@@ -13,6 +13,7 @@ required_development_tools:
   - ansible
   - atool
   - bash
+  - bash-completion
   - bat
   - bc
   - bpytop
@@ -27,6 +28,7 @@ required_development_tools:
   - clang
   - cloc
   - cmake
+  - code
   - colordiff
   - ctags
   - curl
@@ -90,6 +92,7 @@ required_development_tools:
   - mosh
   - nano
   - ncdu
+  - neofetch
   - nmap
   - okular
   - openblas
@@ -117,6 +120,7 @@ required_development_tools:
   - python3-devel
   - rclone
   - readline-devel
+  - rpi-imager
   - rsync
   - seahorse
   - shc
@@ -149,13 +153,13 @@ required_development_tools:
   - yubikey-manager
   - zlib-devel
 
-miniconda_version: 4.9.2
+miniconda_version: 22.11.1-1
 
 # Set the preferred version of the main python interpreter on the current machine.
 # See information: https://wiki.archlinux.org/title/python
-miniconda_python_version: py39
+miniconda_python_version: py310
 
-miniconda_installer_checksum: md5:b4e46fcc8029e2cfa731b788f25b1d36
+miniconda_installer_checksum: sha256:00938c3534750a0e4069499baf8f4e6dc1c2e471c86a59caa0dd03f4a9269db6
 
 required_python_packages:
   - auditwheel
@@ -174,6 +178,7 @@ required_python_packages:
   - pre-commit
   - psutil
   - pylint
+  - ruff
   - sshuttle
   - tmuxp
   - tqdm
@@ -182,6 +187,12 @@ required_python_packages:
   - virtualenv
   - virtualenvwrapper
   - youtube-dl
+
+required_vscode_extensions:
+  - github.copilot
+  - ms-python.python
+  - ms-python.vscode-pylance
+  - visualstudioexptteam.vscodeintellicode
 
 required_user_services:  # sudo systemctl restart pcscd
   - services/emacs.service
@@ -216,4 +227,5 @@ dotfiles_list:
   - { src: dotfiles/dot_scdaemon.conf, dest: ~/.gnupg/scdaemon.conf }
   - { src: dotfiles/dot_tmux_session, dest: ~/.config/tmuxp/main.yml }
   - { src: dotfiles/dot_tmux.conf, dest: ~/.config/tmux/tmux.conf }
+  - { src: dotfiles/dot_vscode.json, dest: ~/.config/Code/User/settings.json }
   - { src: views/gnome_views.css, dest: ~/.config/gtk-3.0/gtk.css } # some tweaks for the main terminal emulator
