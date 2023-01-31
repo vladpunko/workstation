@@ -1,5 +1,7 @@
-"\033[B": history-search-forward
-"\033[A": history-search-backward
+TAB:menu-complete
+
+"\033[B":history-search-forward
+"\033[A":history-search-backward
 
 # Suppress attempts to generate noise in the current interactive session.
 set bell-style off
