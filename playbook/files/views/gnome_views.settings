@@ -3,7 +3,7 @@
 region='en_US.UTF-8'
 
 [org/gnome/shell]
-favorite-apps=['org.gnome.Nautilus.desktop', 'org.gnome.Terminal.desktop', 'firefox.desktop', 'code.desktop', 'emacs.desktop']
+favorite-apps=['org.gnome.Nautilus.desktop', 'org.gnome.Terminal.desktop', 'firefox.desktop', 'emacs.desktop']
 
 [org/gtk/settings/file-chooser]
 show-hidden=true

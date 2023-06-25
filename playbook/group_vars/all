@@ -1,63 +1,55 @@
 ---
-rpmfusion_distribution_version: 37
+rpmfusion_distribution_version: 38
 
 # Set the version of the required public keys for this system distribution.
 # See information: https://rpmfusion.org/keys
 rpmfusion_key_version: 2020
 
 required_development_tools:
-  - '@C Development Tools and Libraries' # some c and c++ dependencies
-  - '@Development tools'
+  - "@C Development Tools and Libraries" # some c and c++ dependencies
+  - "@Development tools"
   - ShellCheck
   - VirtualBox
   - ansible
+  - aspell
+  - aspell-en
   - atool
   - bash
   - bash-completion
   - bat
-  - bc
-  - bpytop
-  - bzip2
-  - bzip2-devel
-  - ccrypt
-  # - chromium
-  # - chromium-libs
-  # - chromium-libs-media-freeworld
+  - bzip2 # python dependency
+  - bzip2-devel # python dependency
   - clamav
   - clamav-update
   - clang
   - cloc
   - cmake
-  - code
-  - colordiff
+  - cppcheck
   - ctags
   - curl
+  - dconf
   - dconf-editor
-  - deadbeef
   - detox
   - discord
   - dnf-automatic
   - dnf-plugin-system-upgrade
   - docker
-  - dropbox
+  - docker-compose
+  - doxygen
   - emacs
-  - fd-find
-  - fdupes
-  - ffmpeg
+  - expect
   - firefox
   - fzf
   - gcc
   - gdb
+  - gdbm-libs # python dependency
   - gimp
   - git
   - git-extras
-  - git-gui
   - git-lfs
-  - git-secret
+  - git-secrets
   - gnome-tweak-tool
   - gnupg
-  - gnuplot
-  - graphviz
   - grep
   - gzip
   - htop
@@ -65,18 +57,14 @@ required_development_tools:
   - ibm-plex-fonts-all
   - ioping
   - iotop
-  - jq
-  - julia
-  - keepassxc
   - kernel-devel
   - kernel-headers
   - lapack
   - less
   - libcgroup-tools
-  - libffi-devel
-  - libpng-devel
-  - libtiff-devel
-  - libyaml-devel
+  - libffi-devel # python dependency
+  - libnsl2 # python dependency
+  - libuuid-devel # python dependency
   - lm_sensors
   - lnav
   - lshw
@@ -85,116 +73,90 @@ required_development_tools:
   - makeself
   - mc
   - md5deep
-  - mediawriter
-  - megasync
   - mercurial
-  - minisign
   - mosh
   - nano
   - ncdu
-  - neofetch
   - nmap
   - okular
   - openblas
   - openssh
   - openssh-server
   - openssl
-  - openssl-devel
-  - p7zip
+  - openssl-devel # python dependency
   - pandoc
   - patch
   - pigz
   - pipenv
   - pipx
-  - pkg-config
   - poetry
   - postgresql
   - postgresql-server
   - putty
-  - pwgen
   - pypy
   - pypy3
   - python2
   - python2-devel
   - python3
   - python3-devel
-  - rclone
-  - readline-devel
-  - rpi-imager
+  - readline-devel # python dependency
   - rsync
   - seahorse
-  - shc
   - sqlite
-  - sqlite-devel
+  - sqlite-devel # python dependency
   - stow
   - supervisor
   - sysstat
   - telegram
-  - texlive
-  - texstudio
   - the_silver_searcher
   - thunderbird
   - tig
-  - timeshift
-  - tk-devel
+  - tk-devel # python dependency
   - tmux
   - transmission
+  - trash-cli
   - tree
   - unrar
   - unzip
   - vagrant
-  - vlc
+  - valgrind
   - vmtouch
   - wget
   - xclip
   - xz
-  - xz-devel
+  - xz-devel # python dependency
   - yank
   - yubikey-manager
-  - zlib-devel
+  - zlib-devel # python dependency
 
-miniconda_version: 22.11.1-1
+miniconda_version: 23.5.2-0
 
 # Set the preferred version of the main python interpreter on the current machine.
-# See information: https://wiki.archlinux.org/title/python
-miniconda_python_version: py310
+# See information: https://repo.anaconda.com/miniconda
+miniconda_python_version: py311
 
-miniconda_installer_checksum: sha256:00938c3534750a0e4069499baf8f4e6dc1c2e471c86a59caa0dd03f4a9269db6
+miniconda_installer_checksum: sha256:634d76df5e489c44ade4085552b97bebc786d49245ed1a830022b0b406de5817
 
 required_python_packages:
   - auditwheel
-  - black[jupyter]
+  - bandit
+  - black
   - flake8
   - isort
-  - joblib
   - jupyter
   - jupyterlab
-  - loguru
   - mypy
-  - nbdime
-  - pdir2
-  - pip-autoremove
-  - pip-tools
   - pre-commit
   - psutil
   - pylint
-  - ruff
   - sshuttle
   - tmuxp
   - tqdm
-  - trash-cli
   - twine
   - virtualenv
   - virtualenvwrapper
-  - youtube-dl
 
-required_vscode_extensions:
-  - github.copilot
-  - ms-python.python
-  - ms-python.vscode-pylance
-  - visualstudioexptteam.vscodeintellicode
-
-required_user_services:  # sudo systemctl restart pcscd
+required_user_services:
   - services/emacs.service
   - services/notebook.service
 
@@ -224,8 +186,7 @@ dotfiles_list:
   - { src: dotfiles/dot_notebookrc, dest: ~/.jupyter/jupyter_notebook_config.py }
   - { src: dotfiles/dot_pip.conf, dest: ~/.config/pip/pip.conf }
   - { src: dotfiles/dot_pylintrc, dest: ~/.config/pylintrc }
-  - { src: dotfiles/dot_scdaemon.conf, dest: ~/.gnupg/scdaemon.conf }
+  - { src: dotfiles/dot_scdaemon.conf, dest: ~/.gnupg/scdaemon.conf } # it is required for the yubikey
   - { src: dotfiles/dot_tmux_session, dest: ~/.config/tmuxp/main.yml }
   - { src: dotfiles/dot_tmux.conf, dest: ~/.config/tmux/tmux.conf }
-  - { src: dotfiles/dot_vscode.json, dest: ~/.config/Code/User/settings.json }
   - { src: views/gnome_views.css, dest: ~/.config/gtk-3.0/gtk.css } # some tweaks for the main terminal emulator

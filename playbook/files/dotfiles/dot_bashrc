@@ -25,14 +25,11 @@ shopt -s histappend
 # Load all programs and packages of the main scientific computation system on the current machine.
 source "${HOME}/.miniconda/etc/profile.d/conda.sh" 2> /dev/null
 
-# Activate the necessary completions to enhance the current shell experience.
-# See information: https://stackoverflow.com/questions/12399002
-source /usr/share/bash-completion/completions/git 2> /dev/null
-
 # Start the main tool to download and compile the wanted python version.
-# Run the following command to install a new python interpreter: env -- CC=clang pyenv install <version>
-# See information: https://github.com/pyenv/pyenv/issues/1889
 eval -- "$(pyenv init --path)"
+
+# Activate the necessary completions to enhance the current shell experience.
+source /usr/share/bash-completion/bash_completion 2> /dev/null
 
 # Start the preferred environment management system for user's python interpreters on the current machine.
 source -- "$(command -v virtualenvwrapper.sh)" 2> /dev/null

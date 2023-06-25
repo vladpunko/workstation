@@ -12,7 +12,7 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 13
 fi
 
-version=2022.3.2
+version=2023.2.2
 
 pycharm_archive=/tmp/pycharm.tar.gz
 # Use this reserved directory to install additional software packages.
@@ -20,6 +20,11 @@ pycharm_archive=/tmp/pycharm.tar.gz
 pycharm_path=/opt/pycharm
 
 pycharm_program=/usr/bin/pycharm
+
+_cleanup() {
+  rm -f -r -- "${pycharm_archive}"
+}
+trap _cleanup 0 1 2 3 6
 
 # Download pycharm archive containing all editor's components to the current working machine.
 wget --continue -O "${pycharm_archive}" "https://download.jetbrains.com/python/pycharm-community-${version}.tar.gz"
@@ -35,8 +40,3 @@ fi
 
 # Create a new user's working link to the main shell script to start this editor on the command line.
 ln -s -- "${pycharm_path}/bin/pycharm.sh" "${pycharm_program}"
-
-_cleanup() {
-  rm -f -r -- "${pycharm_archive}"
-}
-trap _cleanup 0 1 2 3 6

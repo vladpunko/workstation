@@ -5,6 +5,6 @@
     - include_tasks: tasks/system_packages.yml
     - include_tasks: tasks/system_fonts.yml
     - include_tasks: tasks/python_packages.yml
-    - include_tasks: tasks/dotfiles.yml
+    - include_tasks: tasks/user_workspace.yml
     - include_tasks: tasks/user_programs.yml
     - include_tasks: tasks/user_services.yml

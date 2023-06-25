@@ -1,10 +1,6 @@
 ---
 - name: set user's settings for programs and packages
   block:
-    - name: install the requred visual studio code extensions on the current machine
-      shell: code --install-extension "{{ item }}"
-      with_items: "{{ required_vscode_extensions }}"
-
     - name: create new directories to store user's settings on the current machine
       file:
         path: "{{ item.dest | dirname }}" # get the absolute path to store this file on the current machine
@@ -37,3 +33,22 @@
   tags:
     - dotfiles
     - dotfiles-workstation
+
+- name: linux post-installation steps for docker engine
+  become: true
+  become_method: sudo
+  block:
+    - name: create the docker group on the current machine
+      group:
+        name: docker # new group in order to run docker as a non-root user
+        state: present
+
+    - name: add the current user to the docker group
+      user:
+        name: "{{ ansible_env.USER }}"
+        groups: docker
+        append: true
+  when: ansible_distribution | lower == "fedora"
+  tags:
+    - docker
+    - docker-workstation

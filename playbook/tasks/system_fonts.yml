@@ -10,7 +10,7 @@
 
     - name: fetch the pre-patched system fonts and save them on the current machine
       git:
-        repo: "https://github.com/powerline/fonts.git"
+        repo: https://github.com/powerline/fonts.git
         clone: true
         version: master # the preferred version of this package
         dest: "{{ fonts_folder }}"
