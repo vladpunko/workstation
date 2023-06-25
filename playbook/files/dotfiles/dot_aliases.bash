@@ -26,10 +26,8 @@ alias tm='tmux attach || tmux new-session'
 # Connect or create a new working session of the preferred text editor with a specific socket name and open a determined path on the current machine.
 alias e='emacsclient --create-frame --socket-name="${HOME}/.emacs.d/server-socket/server" --suppress-output --tty --quiet'
 
-alias firefoxusers='firefox --ProfileManager'  # go to about:profiles in the current browser session to switch between profiles
-
 # Create a new working session of the preferred file manager on the current machine.
-alias mc='mc --color --nomouse --skin=modarin256'
+alias mc='source /usr/libexec/mc/mc-wrapper.sh --color --nomouse --skin=modarin256'
 
 # Create a new working session of the preferred process viewer on the current machine.
 alias htop='htop --no-mouse --delay=10 --sort-key=PERCENT_MEM'
@@ -53,12 +51,13 @@ alias c='clear'
 alias r='reset'
 
 # Get information about the public network address assigned to the current machine.
-alias myip='curl --disable "https://checkip.amazonaws.com"'
-
-# Convert and combine some documents into one outcome document and save it on the current machine.
-alias mergepdf='gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=_output.pdf'
+alias myip='curl --disable https://checkip.amazonaws.com'
 
 alias pyclean='find "${PWD}" -name "*.py[cod]" -o -name "__pycache__" -exec rm --force --recursive {} +'
+
+# Fix the issue with installing and building new python interpreters on the current machine.
+# See information: https://github.com/pyenv/pyenv/issues/1889
+alias pyenv='env -- CC=clang pyenv'
 
 # Copy the provided text data to the system clipboard.
 alias pbcopy='xclip -selection clipboard -in'

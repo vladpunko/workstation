@@ -11,7 +11,7 @@ sudo dnf install --assumeyes git git-core python3 python3-devel wget
 git clone --depth=1 --branch=master https://github.com/vladpunko/workstation.git
 
 # Step -- 3.
-cd ./workstation/
+cd ./workstation/playbook
 
 # Step -- 4.
 python3 -m pip install --user --requirement=requirements.txt
@@ -20,9 +20,6 @@ python3 -m pip install --user --requirement=requirements.txt
 ansible-playbook --ask-become-pass --inventory=hosts workstation.yml
 
 # Step -- 6.
-sudo ./install-pycharm.sh > /dev/null
-
-# Step -- 7.
 cd && rm --force --recursive ./workstation/
 
 # Done!
@@ -30,7 +27,7 @@ SCRIPT
 
 Vagrant.configure("2") do |config|
   config.vm.define "devbox" do |devbox_config|
-    devbox_config.vm.box = "fedora/37-cloud-base"
+    devbox_config.vm.box = "fedora/38-cloud-base"
     devbox_config.vm.hostname = "devbox"
     devbox_config.vm.network "forwarded_port", guest: 22, host: 2200
     devbox_config.vm.box_check_update = false

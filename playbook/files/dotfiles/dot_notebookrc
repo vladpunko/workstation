@@ -13,7 +13,7 @@ c.NotebookApp.ip = "127.0.0.1"
 c.NotebookApp.open_browser = False
 
 # Set the preferred password to use for unattended access to the working notebook server on the current machine.
-c.NotebookApp.password = "sha256:181c3c47e172:40c69bc848a1bc0db0dd98f23320ec8247b4e0596d7c99422777e35818a25ef4"
+c.NotebookApp.password = "sha256:498165199b36:b8601d213098171a52dfb066c367b9ba1462651c04bba7caef7f2b2ea32d8821"
 
 # Generate a random authorization token string.
 c.NotebookApp.token = secrets.token_hex()

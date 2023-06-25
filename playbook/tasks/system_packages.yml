@@ -25,15 +25,6 @@
           - "https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ rpmfusion_distribution_version }}.noarch.rpm"
         state: present
 
-    - name: install the required repository to provide visual studio code packages for the current operating system
-      yum_repository:
-        name: vscode
-        description: visual studio code repository
-        baseurl: "https://packages.microsoft.com/yumrepos/vscode"
-        gpgkey: "https://packages.microsoft.com/keys/microsoft.asc"
-        gpgcheck: true
-        state: present
-
     - name: check the repositories for newer packages and updates them
       dnf:
         name: "*"

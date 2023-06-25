@@ -7,8 +7,8 @@
 
         # Set the list of the required system programs to install on the current machine.
         program_installers:
-          - { url: "https://raw.githubusercontent.com/vladpunko/detach-process/master/install.sh", dest: /tmp/detach-process-installer.sh }
-          - { url: "https://raw.githubusercontent.com/vladpunko/notebook-environments/master/install.sh", dest: /tmp/notebook-environments-installer.sh }
+          - { url: https://raw.githubusercontent.com/vladpunko/detach-process/master/install.sh, dest: /tmp/detach-process-installer.sh }
+          - { url: https://raw.githubusercontent.com/vladpunko/notebook-environments/master/install.sh, dest: /tmp/notebook-environments-installer.sh }
 
     - name: download all program installers required for this system from a remote server to the current machine
       get_url:

@@ -26,6 +26,11 @@ fi
 
 workdir="$(mktemp -d)"
 
+_cleanup() {
+  rm -f -r -- "${workdir}"
+}
+trap _cleanup 0 1 2 3 6
+
 src_url="$1"
 dst_url="$2"
 
@@ -64,8 +69,3 @@ else
   # Stop this program runtime and return the exit status code.
   exit 1
 fi
-
-_cleanup() {
-  rm -f -r -- "${workdir}"
-}
-trap _cleanup 0 1 2 3 6

@@ -28,7 +28,7 @@
         name: "{{ item | basename }}" # get the current service name
         enabled: true
         scope: user
-        state: started
+        state: stopped
       with_items: "{{ required_user_services }}"
   when: ansible_distribution | lower == "fedora"
   tags:

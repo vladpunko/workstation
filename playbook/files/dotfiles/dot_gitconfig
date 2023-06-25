@@ -68,6 +68,8 @@
   rebase = true
 
 [push]
+  autoSetupRemote = true
+
   # Push into the current branch.
   default = simple
 
