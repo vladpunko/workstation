@@ -246,14 +246,6 @@
   :ensure t
   :hook (org-mode . (lambda () (org-bullets-mode t))))
 
-(use-package cmake-mode
-  :ensure t
-  :commands cmake-mode)
-
-(use-package dockerfile-mode
-  :ensure t
-  :commands dockerfile-mode)
-
 (use-package markdown-mode
   :ensure t
   :commands markdown-mode)

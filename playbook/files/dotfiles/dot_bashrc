@@ -6,6 +6,9 @@ fi
 source "${HOME}/.config/bash/aliases.bash"
 source "${HOME}/.config/bash/exports.bash"
 source "${HOME}/.config/bash/functions.bash"
+source "${HOME}/.config/bash/ssh_agent.bash"
+# ---
+ssh-add "${HOME}/.ssh/id_rsa" 2> /dev/null
 
 # Create a new meta storage of the executed commands.
 shopt -s checkhash
@@ -41,8 +44,9 @@ _fzf_dirs=(
 )
 for _fzf_dir in "${_fzf_dirs[@]}"; do
   if [[ -d "${_fzf_dir}" ]]; then
-    # Load the key combinations of the preferred command-line finder on the current machine.
-    source "${_fzf_dir}/shell/key-bindings.bash"
+    # Load the key combinations and enable shell completion for the preferred command-line finder on the current machine.
+    source "${_fzf_dir}/shell/completion.bash" 2> /dev/null
+    source "${_fzf_dir}/shell/key-bindings.bash" 2> /dev/null
     break
   fi
 done

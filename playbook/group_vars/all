@@ -187,6 +187,7 @@ dotfiles_list:
   - { src: dotfiles/dot_pip.conf, dest: ~/.config/pip/pip.conf }
   - { src: dotfiles/dot_pylintrc, dest: ~/.config/pylintrc }
   - { src: dotfiles/dot_scdaemon.conf, dest: ~/.gnupg/scdaemon.conf } # it is required for the yubikey
-  - { src: dotfiles/dot_tmux_session, dest: ~/.config/tmuxp/main.yml }
+  - { src: dotfiles/dot_ssh_agent.bash, dest: ~/.config/bash/ssh_agent.bash }
   - { src: dotfiles/dot_tmux.conf, dest: ~/.config/tmux/tmux.conf }
+  - { src: dotfiles/dot_tmux_session, dest: ~/.config/tmuxp/main.yml }
   - { src: views/gnome_views.css, dest: ~/.config/gtk-3.0/gtk.css } # some tweaks for the main terminal emulator
