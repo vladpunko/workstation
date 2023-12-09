@@ -1,2 +1,6 @@
-# Truncate user's previous output in the current interactive session.
-/usr/bin/clear && /usr/bin/reset
+if [[ -n "${PS1}" ]]; then
+  # Truncate user's previous output in the current interactive session.
+  /usr/bin/reset
+
+  echo "Goodbye, ${USER}!"
+fi

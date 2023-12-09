@@ -1,4 +1,9 @@
 ---
+- name: check if system daemon directory exists
+  stat:
+    path: /etc/systemd/system
+  register: system_daemon_directory
+
 - name: install and start user's services
   block:
     - name: create new private variables for this logical group of tasks
@@ -30,7 +35,7 @@
         scope: user
         state: stopped
       with_items: "{{ required_user_services }}"
-  when: ansible_distribution | lower == "fedora"
+  when: ansible_distribution | lower == "fedora" and system_daemon_directory.stat.exists
   tags:
     - services
     - services-workstation
