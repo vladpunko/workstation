@@ -19,14 +19,14 @@ sys.exit(1)
 EOF
 
 if [ "$?" -eq 0 ]; then
-  echo "Active ssh agent detected with pid: $(cat "${_ssh_agent_pid_path}")"
+  echo "Active ssh agent detected with pid: $(cat "${_ssh_agent_pid_path}")."
 else
   rm -- "${SSH_AUTH_SOCK}" > /dev/null 2>&1
   eval -- "$(ssh-agent -a "${SSH_AUTH_SOCK}")"
 
   if [ "$?" -eq 0 ]; then
     echo "${SSH_AGENT_PID}" > "${_ssh_agent_pid_path}"
-    echo "New ssh agent started with pid: ${SSH_AGENT_PID}"
+    echo "New ssh agent started with pid: ${SSH_AGENT_PID}."
   else
     echo "Failed to start the ssh agent."
   fi

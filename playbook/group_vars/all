@@ -1,5 +1,5 @@
 ---
-rpmfusion_distribution_version: 38
+rpmfusion_distribution_version: 39
 
 # Set the version of the required public keys for this system distribution.
 # See information: https://rpmfusion.org/keys
@@ -8,11 +8,10 @@ rpmfusion_key_version: 2020
 required_development_tools:
   - "@C Development Tools and Libraries" # some c and c++ dependencies
   - "@Development tools"
-  - ShellCheck
-  - VirtualBox
   - ansible
   - aspell
   - aspell-en
+  - aspell-ru
   - atool
   - bash
   - bash-completion
@@ -24,7 +23,7 @@ required_development_tools:
   - clang
   - cloc
   - cmake
-  - cppcheck
+  - code
   - ctags
   - curl
   - dconf
@@ -35,10 +34,10 @@ required_development_tools:
   - dnf-plugin-system-upgrade
   - docker
   - docker-compose
-  - doxygen
   - emacs
   - expect
   - firefox
+  - flameshot
   - fzf
   - gcc
   - gdb
@@ -53,7 +52,6 @@ required_development_tools:
   - grep
   - gzip
   - htop
-  - httpie
   - ibm-plex-fonts-all
   - ioping
   - iotop
@@ -84,14 +82,11 @@ required_development_tools:
   - openssh-server
   - openssl
   - openssl-devel # python dependency
-  - pandoc
   - patch
   - pigz
   - pipenv
   - pipx
   - poetry
-  - postgresql
-  - postgresql-server
   - putty
   - pypy
   - pypy3
@@ -102,10 +97,9 @@ required_development_tools:
   - readline-devel # python dependency
   - rsync
   - seahorse
+  - shellcheck
   - sqlite
   - sqlite-devel # python dependency
-  - stow
-  - supervisor
   - sysstat
   - telegram
   - the_silver_searcher
@@ -118,7 +112,6 @@ required_development_tools:
   - tree
   - unrar
   - unzip
-  - vagrant
   - valgrind
   - vmtouch
   - wget
@@ -129,13 +122,13 @@ required_development_tools:
   - yubikey-manager
   - zlib-devel # python dependency
 
-miniconda_version: 23.5.2-0
+miniconda_version: 24.5.0-0
 
 # Set the preferred version of the main python interpreter on the current machine.
 # See information: https://repo.anaconda.com/miniconda
-miniconda_python_version: py311
+miniconda_python_version: py312
 
-miniconda_installer_checksum: sha256:634d76df5e489c44ade4085552b97bebc786d49245ed1a830022b0b406de5817
+miniconda_installer_checksum: sha256:4b3b3b1b99215e85fd73fb2c2d7ebf318ac942a457072de62d885056556eb83e
 
 required_python_packages:
   - auditwheel
@@ -156,11 +149,26 @@ required_python_packages:
   - virtualenv
   - virtualenvwrapper
 
-required_user_services:
+required_vscode_extensions:
+  - ms-azuretools.vscode-docker
+  # ---
+  - ms-python.debugpy
+  - ms-python.python
+  - ms-python.vscode-pylance
+  # ---
+  - ms-vscode-remote.remote-containers
+  - ms-vscode-remote.remote-ssh
+  - ms-vscode-remote.remote-ssh-edit
+  - ms-vscode.remote-explorer
+  # ---
+  - visualstudioexptteam.vscodeintellicode
+
+required_user_services:  # sudo systemctl restart pcscd
   - services/emacs.service
   - services/notebook.service
 
 required_user_scripts:
+  - "scripts/$"
   - scripts/emacswrapper
   - scripts/gitmirror
   - scripts/updatesystem
@@ -186,8 +194,10 @@ dotfiles_list:
   - { src: dotfiles/dot_notebookrc, dest: ~/.jupyter/jupyter_notebook_config.py }
   - { src: dotfiles/dot_pip.conf, dest: ~/.config/pip/pip.conf }
   - { src: dotfiles/dot_pylintrc, dest: ~/.config/pylintrc }
+  - { src: dotfiles/dot_pythonrc.py, dest: ~/.pythonrc.py }
   - { src: dotfiles/dot_scdaemon.conf, dest: ~/.gnupg/scdaemon.conf } # it is required for the yubikey
   - { src: dotfiles/dot_ssh_agent.bash, dest: ~/.config/bash/ssh_agent.bash }
-  - { src: dotfiles/dot_tmux.conf, dest: ~/.config/tmux/tmux.conf }
   - { src: dotfiles/dot_tmux_session, dest: ~/.config/tmuxp/main.yml }
+  - { src: dotfiles/dot_tmux.conf, dest: ~/.config/tmux/tmux.conf }
+  - { src: dotfiles/dot_vscode.json, dest: ~/.config/Code/User/settings.json }
   - { src: views/gnome_views.css, dest: ~/.config/gtk-3.0/gtk.css } # some tweaks for the main terminal emulator
