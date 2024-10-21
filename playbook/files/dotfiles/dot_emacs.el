@@ -165,6 +165,8 @@
   :bind (("C-c r" . undo-tree-redo)
          ("C-c u" . undo-tree-undo)
          ("C-x u" . undo-tree-visualize))
+  :config
+  (setq undo-tree-history-directory-alist '(("." . "~/.emacs.d/.undo_tree")))
   :init
   (global-undo-tree-mode t))
 

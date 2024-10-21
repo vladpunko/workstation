@@ -3,6 +3,7 @@ export PYENV_ROOT="${HOME}/.pyenv"
 # Set the main settings for all python interpreters.
 export PYTHONDONTWRITEBYTECODE=1
 export PYTHONIOENCODING=UTF-8
+export PYTHONSTARTUP="${HOME}/.pythonrc.py"
 
 export PATH="${PYENV_ROOT}/bin:${HOME}/.miniconda/bin:${HOME}/bin:${HOME}/.local/bin:/usr/local/bin:/usr/local/sbin${PATH:+:${PATH}}"
 

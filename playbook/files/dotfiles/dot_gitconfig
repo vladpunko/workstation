@@ -9,7 +9,7 @@
   c = clone --recursive
 
   # Show the entire commit graph of a local working repository on the current machine with some additional details.
-  la = log --pretty=format:'%C(red)%h%C(reset) %C(yellow)%an: %C(cyan)%d %C(reset)%s %C(green)(%cr)' --graph --date=relative
+  la = log --pretty=format:'%C(red)%h%C(reset) %C(yellow)%aN: %C(cyan)%d %C(reset)%s %C(green)(%cr)' --graph --date=relative
 
   # Update the current working tree and all its submodules.
   p = pull --recurse-submodules
@@ -51,6 +51,9 @@
   # Fix the issue with the unicode decomposition of filenames in a local working repository.
   precomposeUnicode = false
 
+  # Make git display names in russian.
+  quotepath = false
+
 [credential]
   # Update the main storage time for user's credentials of the active session.
   helper = cache --timeout=3600
@@ -79,6 +82,9 @@
 
 [gpg]
   program = gpg2
+
+[init]
+  defaultBranch = master
 
 [user]
   email = iam.vlad.punko@gmail.com
