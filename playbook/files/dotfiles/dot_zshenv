@@ -1,0 +1,8 @@
+# Set the main path to store user's settings on the current machine.
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/Library/Preferences}"
+
+# Set the main path where user-specific cached data should be written on the current machine.
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-${HOME}/Library/Caches}"
+
+# Set the main path where user-specific data files should be written on the current machine.
+export XDG_DATA_HOME="${XDG_DATA_HOME:-${HOME}/Library}"

@@ -1,46 +1,42 @@
 ---
+- include_vars: vars/python.yml
+
 - name: install the required python packages and updates
   block:
     - name: create new private variables for this logical group of tasks
       set_fact:
-        miniconda_installer: /tmp/miniconda-installer.sh
-
         # Set the main path where to install miniconda on the current machine.
-        miniconda_home: ~/.miniconda
-
-        miniconda_executable: ~/.miniconda/bin/conda
-
-        # Select the main package manager to install and update python dependencies.
-        miniconda_pip: ~/.miniconda/bin/pip
+        miniconda_location: ~/.miniconda
 
         # Set the directory under which python versions and shims reside.
-        pyenv_home: ~/.pyenv
+        pyenv_location: ~/.pyenv
 
     - name: check for miniconda existence on the current machine
       stat:
-        path: "{{ miniconda_executable }}"
-      changed_when: false
+        path: "{{ miniconda_location }}/bin/conda"
       register: miniconda_conda_executable
+      changed_when: false
 
     - block:
         - name: download the miniconda installer from a remote server to the current machine
           get_url:
-            url: "https://repo.continuum.io/miniconda/Miniconda3-{{ miniconda_python_version }}_{{ miniconda_version }}-Linux-{{ ansible_architecture }}.sh"
+            url: "https://repo.continuum.io/miniconda/Miniconda3-{{ miniconda_python_version }}_{{ miniconda_version }}-MacOSX-{{ ansible_architecture }}.sh"
             checksum: "{{ miniconda_installer_checksum }}"
-            dest: "{{ miniconda_installer }}"
+            dest: "{{ lookup('pipe', 'mktemp') }}.sh"
             timeout: 600 # when downloading the miniconda installer it might take a while
-            owner: "{{ ansible_env.USER }}"
-            group: "{{ ansible_env.USER }}"
+            owner: "{{ user }}"
+            group: "{{ group }}"
             mode: 0755
+          register: miniconda_installer
 
         - name: install miniconda dependencies and packages on the current operating system
-          command: "{{ miniconda_installer }} -b -p {{ miniconda_home }}" # run a local script on the current machine
+          command: "{{ miniconda_installer.dest }} -b -p {{ miniconda_location }}" # run a local script on the current machine
           args:
-            creates: "{{ miniconda_home }}"
+            creates: "{{ miniconda_location }}"
       always:
         - name: delete the downloaded installer from the current machine
           file:
-            path: "{{ miniconda_installer }}"
+            path: "{{ miniconda_installer.dest }}"
             state: absent
       when: not miniconda_conda_executable.stat.exists
 
@@ -49,14 +45,16 @@
         repo: "https://github.com/pyenv/pyenv.git"
         clone: true
         version: master # the preferred version of this package
-        dest: "{{ pyenv_home }}"
+        dest: "{{ pyenv_location }}"
 
     - name: install the required python packages on the current operating system
+      environment:
+        PIP_CONFIG_FILE: /dev/null
       pip:
-        executable: "{{ miniconda_pip }}"
+        executable: "{{ miniconda_location }}/bin/pip"
         name: "{{ required_python_packages }}"
         state: latest
-  when: ansible_distribution | lower == "fedora"
+  when: ansible_distribution == "MacOSX"
   tags:
     - python
     - python-workstation

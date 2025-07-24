@@ -1,0 +1,58 @@
+if [[ -f /etc/zshrc ]]; then
+  # Load the main settings of the current operating system.
+  source /etc/zshrc
+fi
+
+source "${HOME}/.config/zsh/aliases.zsh"
+source "${HOME}/.config/zsh/completions.zsh"
+source "${HOME}/.config/zsh/exports.zsh"
+source "${HOME}/.config/zsh/functions.zsh"
+
+# Save each command's beginning timestamp and the duration to the history file.
+setopt extended_history
+
+# Retain unique commands in history by removing older duplicates first when history reaches its size limit.
+setopt hist_expire_dups_first
+
+# Do not enter command lines into the history list if they are duplicates of the previous event.
+setopt hist_ignore_dups
+
+# Ignore commands that start with space.
+setopt hist_ignore_space
+
+# Show command with history expansion to user before running it.
+setopt hist_verify
+
+# Share command history data.
+setopt share_history
+
+# Use emacs key bindings.
+bindkey -e
+
+# Delete the character behind the cursor.
+bindkey '^?' backward-delete-char
+
+# Delete the character in front of the cursor.
+bindkey '^[[3~' delete-char
+
+bindkey '^[3;5~' delete-char
+
+# Expand history references before inserting a space.
+bindkey ' ' magic-space
+
+# Edit the current command line in the main text editor.
+autoload -U edit-command-line
+zle -N edit-command-line
+bindkey '\C-x\C-e' edit-command-line
+
+# Load all programs and packages of the main scientific computation system on the current machine.
+source "${HOME}/.miniconda/etc/profile.d/conda.sh" 2> /dev/null
+
+# Start the main tool to download and compile the specified python version.
+eval -- "$(pyenv init --path)" 2> /dev/null
+
+# Start the preferred environment management system for user's python interpreters on the current machine.
+source -- "$(command -v virtualenvwrapper.sh)" 2> /dev/null
+
+# Load the key combinations and enable shell completion for the preferred command-line finder on the current machine.
+eval -- "$(fzf --zsh)" 2> /dev/null

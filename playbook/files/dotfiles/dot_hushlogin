@@ -1,2 +1,2 @@
-# Hide this operating system messages arising on the current user sign-in.
+# Suppress system messages displayed upon user login.
 # See information: https://wiki.archlinux.org/index.php/silent_boot

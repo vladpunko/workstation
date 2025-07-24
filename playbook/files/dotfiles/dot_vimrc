@@ -1,0 +1,30 @@
+set nocompatible
+
+" Switch syntax highlighting on.
+syntax on
+
+" No extra spaces between rows.
+set linespace=0
+
+" Enable line numbers.
+set number
+
+" Highlight matching brackets and parentheses.
+set showmatch
+
+" Find as you type search.
+set incsearch
+
+" Highlight all search results.
+set hlsearch
+
+" Case-insensitive search.
+set ignorecase
+
+" Enhanced command-line completion.
+set wildmenu
+set wildmode=longest:full,full
+
+" Use spaces instead of tabs.
+set expandtab
+set tabstop=4

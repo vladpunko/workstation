@@ -1,0 +1,4 @@
+export PYENV_ROOT="${HOME}/.pyenv"
+
+# Set up paths for user executables and application binaries.
+export PATH="${PYENV_ROOT}/bin:${HOME}/.miniconda/bin:${HOME}/bin:${HOME}/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/local/sbin${PATH:+:${PATH}}"

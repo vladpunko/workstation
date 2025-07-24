@@ -11,14 +11,14 @@
   # Show the entire commit graph of a local working repository on the current machine with some additional details.
   la = log --pretty=format:'%C(red)%h%C(reset) %C(yellow)%aN: %C(cyan)%d %C(reset)%s %C(green)(%cr)' --graph --date=relative
 
+  # Get the last commit in the working tree and copy it to the clipboard.
+  latest = !git rev-parse HEAD | tr -d '\\n' | pbcopy
+
   # Update the current working tree and all its submodules.
   p = pull --recurse-submodules
 
   # Show the remote server settings.
   remotes = remote --verbose
-
-  # Find and remove all branches that have been merged with the main branch in a local working repository on the current machine.
-  rmb = !git branch --merged | grep --extended-regexp --invert-match '(^\\*|develop|main|master)' | xargs git branch --delete
 
   # Show the current working tree status using the shortest format.
   st = status --short
@@ -40,10 +40,10 @@
 
 [core]
   # Set the preferred text editor on the current machine.
-  editor = emacs --no-window-system
+  editor = vim
 
   # Set custom patterns of names to exclude unneeded untracked contents.
-  excludesfile = ~/.config/git/gitignore_global
+  excludesfile = ~/.gitignore_global
 
   # Ignore the time difference between the index and the current working tree.
   trustctime = false
@@ -60,7 +60,7 @@
 
 [diff]
   # Set the patches comparison system.
-  algorithm = patience
+  algorithm = histogram
 
 [fetch]
   # Automatic cleaning is to be made in the current working tree.
@@ -81,7 +81,7 @@
   submoduleSummary = true
 
 [gpg]
-  program = gpg2
+  program = gpg
 
 [init]
   defaultBranch = master

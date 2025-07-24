@@ -6,22 +6,38 @@ set -o errexit
 set -o nounset
 
 _print_error() {
-  printf "[\\033[31;1mERROR\\033[0m]: %s\\n" "$1"
-}
-
-_print_info() {
-  printf "[\\033[36;1mINFO\\033[0m]: %s\\n" "$1"
+  printf "[\\033[31;1mERROR\\033[0m]: %s\\n" "$1" >&2
 }
 
 _print_success() {
   printf "[\\033[32;1mOK\\033[0m]: %s\\n" "$1"
 }
 
+_print_warning() {
+  printf "[\\033[33;1mWARNING\\033[0m]: %s\\n" "$1"
+}
+
+if [ -x "$(command -v git)" ]; then
+  _print_success 'Git is installed.'
+else
+  _print_error 'Git does not seem to be installed.'
+  _print_warning 'Install git via your package manager or directly from https://git-scm.com/.'
+  exit 1
+fi
+
+if [ -x "$(command -v git-lfs)" ]; then
+  _print_success 'Git large file storage is detected and ready to use.'
+else
+  _print_error 'Git large file storage is missing or not properly installed.'
+  _print_warning 'It can be installed through your package manager or by visiting https://git-lfs.com/.'
+  exit 1
+fi
+
 # Check the number of arguments passed to this script.
 if [ "$#" -ne 2 ]; then
-  _print_error "You are to use: $(basename -- "$0") <source: URL> <destination: URL>" >&2
-  # Stop this program runtime and return the exit status code.
-  exit 1
+  _print_error "You are to use: $(basename -- "$0") <source: URL> <destination: URL>"
+  # Terminate program execution due to invalid arguments.
+  exit 2
 fi
 
 workdir="$(mktemp -d)"
@@ -34,25 +50,14 @@ trap _cleanup 0 1 2 3 6
 src_url="$1"
 dst_url="$2"
 
-if [ -x "$(command -v git)" ] && [ -x "$(command -v git-lfs)" ]; then
-  _print_info 'Both git and git-lfs are set up correctly.'
-else
-  _print_error 'Git or git-lfs is either not installed or not functioning properly.' >&2
-  # Stop this program runtime and return the exit status code.
-  exit 1
-fi
-
 # Ask the current user to approve and continue this dangerous process.
-_print_info 'Do you want to mirror this repository? [Y/n]: ' && read -r answer
+_print_warning 'Do you want to mirror this repository? [Y/n]: ' && read -r answer
 
 if [ "${answer}" != "${answer#[Yy]}" ]; then
-  _print_info "Fetching from ${src_url} into ${dst_url}..."
+  _print_warning "Fetching from ${src_url} into ${dst_url}..."
 
   # Create a new repository without a working tree on the current machine.
   cd -- "${workdir}" && git init --bare -- "${workdir}"
-
-  # Avoid automatic downloading of large files during checkout.
-  git-lfs install --skip-smudge
 
   # Set the remote server to download all components of the source repository.
   git config remote.origin.url "${src_url}"
@@ -64,19 +69,24 @@ if [ "${answer}" != "${answer#[Yy]}" ]; then
   # Mark the current repository as a mirror.
   git config remote.origin.mirror true
 
-  # Perform a powerful moving that fetches all registered remotes and their branches.
-  git fetch --all && git-lfs fetch --all
+  # Fetch all registered remotes along with their branches.
+  git fetch --all
 
-  _print_info "All components were saved in ${workdir}. Pushing into ${dst_url}..."
+  # Pull all large objects stored in the remote repository.
+  # See information: https://github.com/git-lfs/git-lfs/issues/1338
+  git-lfs fetch --all
+
+  _print_warning "All components were saved in ${workdir}. Pushing into ${dst_url}..."
 
   # Push this converted repository to the remote server.
-  git push --mirror -- "${dst_url}" && git-lfs push --all -- "${dst_url}"
+  git push --mirror -- "${dst_url}"
+  git-lfs push --all -- "${dst_url}"
 
   cd -  # go back to the last directory
 
   _print_success 'Done!'
 else
-  _print_error 'Stop this program runtime on the current machine.' >&2
+  _print_error 'Stop this program runtime on the current machine.'
   # Stop this program runtime and return the exit status code.
   exit 1
 fi

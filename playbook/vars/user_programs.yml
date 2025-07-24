@@ -1,0 +1,9 @@
+---
+required_user_programs:
+  - https://raw.githubusercontent.com/vladpunko/detach-process/master/install.sh
+  - https://raw.githubusercontent.com/vladpunko/notebook-environments/master/install.sh
+
+required_user_scripts:
+  - scripts/gitmirror
+  - scripts/sshkey
+  - scripts/updatesystem

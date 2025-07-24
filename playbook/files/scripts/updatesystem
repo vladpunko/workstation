@@ -5,22 +5,17 @@
 set -o errexit
 set -o nounset
 
-# Ask for the administrator's password in advance.
-sudo --validate
+brew update
 
-# Keep-alive: update existing user's password timestamp until this script finishes on the current machine.
-while true; do sudo --non-interactive true; sleep 60; kill -s 0 "$$" || exit; done 2> /dev/null &
+# Upgrade all homebrew-installed packages to their latest versions.
+brew upgrade
+brew upgrade --cask
 
-if [ -f /etc/redhat-release ] && grep --ignore-case --quiet fedora /etc/redhat-release; then
-  # Check the repositories for newer packages and updates them.
-  sudo dnf update --refresh --assumeyes
+# Remove all contents from the homebrew cache directory.
+rm -f -r -- "$(brew --cache)"
 
-  # Clean all package cache.
-  sudo dnf clean all
-fi
-
-# Update the main virus database on the current machine.
-sudo freshclam --show-progress
+# Refresh the primary virus definitions on this system.
+freshclam --show-progress
 
 # Update all programs and packages of the main scientific computation system.
-"${HOME}/.miniconda/bin/conda" update --update-all --yes
+"${HOME}/.miniconda/bin/conda" update --yes --update-all

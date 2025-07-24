@@ -1,58 +1,41 @@
 ---
+- include_vars: vars/dotfiles.yml
+- include_vars: vars/vscode_extensions.yml
+
 - name: set user's settings for programs and packages
   block:
-    - name: install the requred visual studio code extensions on the current machine
-      shell: code --force --install-extension "{{ item }}"
-      with_items: "{{ required_vscode_extensions }}"
-
     - name: create new directories to store user's settings on the current machine
       file:
         path: "{{ item.dest | dirname }}" # get the absolute path to store this file on the current machine
         state: directory
         recurse: false
-        owner: "{{ ansible_env.USER }}"
-        group: "{{ ansible_env.USER }}"
+        owner: "{{ user }}"
+        group: "{{ group }}"
         mode: 0755
-      with_items: "{{ dotfiles_list }}"
+      with_items: "{{ dotfiles }}"
 
     - name: set user's settings for the required programs and packages on the current operating system
       copy:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
-        owner: "{{ ansible_env.USER }}"
-        group: "{{ ansible_env.USER }}"
-        mode: 0644
-      with_items: "{{ dotfiles_list }}"
-
-    - name: set user's settings for the main graphical user interface on the current operating system
-      shell: dconf load / < files/views/gnome_views.settings # restore the main desktop settings
-      args:
-        chdir: "{{ playbook_dir }}" # change the current working directory before running this command
-  always:
-    - name: reload all user's services on the current machine
-      systemd:
-        daemon_reload: true
-        scope: user
-  when: ansible_distribution | lower == "fedora"
+        owner: "{{ user }}"
+        group: "{{ group }}"
+        mode: 0600
+      with_items: "{{ dotfiles }}"
+  when: ansible_distribution == "MacOSX"
   tags:
     - dotfiles
     - dotfiles-workstation
 
-- name: linux post-installation steps for docker engine
-  become: true
-  become_method: sudo
+- name: provision visual studio code environment
   block:
-    - name: create the docker group on the current machine
-      group:
-        name: docker # new group in order to run docker as a non-root user
-        state: present
-
-    - name: add the current user to the docker group
-      user:
-        name: "{{ ansible_env.USER }}"
-        groups: docker
-        append: true
-  when: ansible_distribution | lower == "fedora"
+    - name: install the requred visual studio code extensions on the current machine
+      environment:
+        # It is assumed that the working shell session from which this playbook was launched is not yet configured.
+        PATH: "/opt/homebrew/bin:{{ lookup('ansible.builtin.env', 'PATH') }}"
+      command: code --force --install-extension "{{ item }}"
+      with_items: "{{ required_vscode_extensions }}"
+  when: ansible_distribution == "MacOSX"
   tags:
-    - docker
-    - docker-workstation
+    - vscode
+    - vscode-workstation

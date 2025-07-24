@@ -1,0 +1,3 @@
+---
+required_user_services:
+  - services/org.jupyter.service.plist

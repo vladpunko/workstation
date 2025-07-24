@@ -1,3 +1,0 @@
-# Prevent this program from execution via invocation of the main interactive system.
-# See information: https://stackoverflow.com/questions/39702871
-set startup-with-shell off

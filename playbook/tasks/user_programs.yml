@@ -1,54 +1,58 @@
 ---
+- include_vars: vars/user_programs.yml
+
 - name: install the required system scripts and programs
   block:
     - name: create new private variables for this logical group of tasks
       set_fact:
         scripts_location: ~/.local/bin
 
-        # Set the list of the required system programs to install on the current machine.
-        program_installers:
-          - { url: https://raw.githubusercontent.com/vladpunko/detach-process/master/install.sh, dest: /tmp/detach-process-installer.sh }
-          - { url: https://raw.githubusercontent.com/vladpunko/notebook-environments/master/install.sh, dest: /tmp/notebook-environments-installer.sh }
-
     - name: download all program installers required for this system from a remote server to the current machine
       get_url:
-        url: "{{ item.url }}"
-        dest: "{{ item.dest }}"
-        owner: "{{ ansible_env.USER }}"
-        group: "{{ ansible_env.USER }}"
+        url: "{{ item }}"
+        dest: "{{ lookup('pipe', 'mktemp') }}.sh"
+        owner: "{{ user }}"
+        group: "{{ group }}"
         mode: 0755
-      with_items: "{{ program_installers }}"
+      register: downloaded_programs
+      with_items: "{{ required_user_programs }}"
 
     - name: install the required programs on the current operating system
       become: true
       become_method: sudo
       command: "{{ item.dest }}"
-      with_items: "{{ program_installers }}"
+      loop_control:
+        label: "{{ item.url }}"
+      with_items: "{{ downloaded_programs.results }}"
 
     - name: create a new directory to store user's scripts on the current machine
       file:
         path: "{{ scripts_location }}"
         state: directory
         recurse: false
-        owner: "{{ ansible_env.USER }}"
-        group: "{{ ansible_env.USER }}"
+        owner: "{{ user }}"
+        group: "{{ group }}"
         mode: 0755
 
     - name: install the required scripts on the current operating system
       copy:
         src: "{{ item }}"
         dest: "{{ scripts_location }}"
-        owner: "{{ ansible_env.USER }}"
-        group: "{{ ansible_env.USER }}"
+        owner: "{{ user }}"
+        group: "{{ group }}"
         mode: 0755
+      loop_control:
+        label: "{{ item | basename }}"
       with_items: "{{ required_user_scripts }}"
   always:
     - name: delete all downloaded installers from the current machine
       file:
         path: "{{ item.dest }}"
         state: absent
-      with_items: "{{ program_installers }}"
-  when: ansible_distribution | lower == "fedora"
+      loop_control:
+        label: "{{ item.url }}"
+      with_items: "{{ downloaded_programs.results }}"
+  when: ansible_distribution == "MacOSX"
   tags:
     - programs
     - programs-workstation

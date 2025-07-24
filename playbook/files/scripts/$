@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-# Copyright 2020 (c) Vladislav Punko <iam.vlad.punko@gmail.com>
-
-"$@"
