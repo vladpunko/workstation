@@ -1,0 +1,6 @@
+theme = Apple System Colors
+
+# Support meta keys.
+keybind = alt+left=unbind
+keybind = alt+right=unbind
+macos-option-as-alt = true

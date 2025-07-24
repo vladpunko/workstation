@@ -1,15 +1,19 @@
 {
     // Section -- 1.
-    "editor.fontFamily": "IBM Plex Mono",
-    "editor.fontSize": 14,
+    "editor.fontFamily": "JetBrains Mono",
+    "editor.fontLigatures": true,
+    "editor.fontSize": 13,
     "editor.inlineSuggest.enabled": true,
     "editor.insertSpaces": true,
+    "editor.letterSpacing": 0.3,
+    "editor.minimap.enabled": false,
     "editor.renderControlCharacters": true,
     "editor.renderWhitespace": "all",
-    "editor.rulers": [100, 120],
-    "editor.minimap.enabled": false,
+    "editor.rulers": [88, 130],
 
     // Section -- 2.
+    "explorer.compactFolders": false,
+
     "files.associations": {
         "*.toml": "properties"
     },
@@ -18,22 +22,19 @@
     "files.trimTrailingWhitespace": true,
 
     // Section -- 3.
-    "window.zoomLevel": 1.0,
-
-    // Section -- 4.
     "workbench.iconTheme": "vs-minimal",
     "workbench.sideBar.location": "right",
     "workbench.startupEditor": "none",
 
-    // Section -- 5.
+    // Section -- 4.
     "telemetry.enableCrashReporter": false,
     "telemetry.enableTelemetry": false,
     "telemetry.telemetryLevel": "off",
 
-    // Section -- 6.
+    // Section -- 5.
     "git.defaultBranchName": "master",
     "git.defaultCloneDirectory": "~/Projects/",
 
-    // Section -- 7.
+    // Section -- 6.
     "python.venvPath": "~/.cache/pypoetry/virtualenvs/"
 }

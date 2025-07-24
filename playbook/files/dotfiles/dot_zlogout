@@ -1,0 +1,4 @@
+# Reset the terminal to clear previous output in the current interactive session.
+/usr/bin/reset
+
+echo "Goodbye, ${USER}!"

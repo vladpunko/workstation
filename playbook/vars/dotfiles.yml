@@ -1,0 +1,24 @@
+---
+dotfiles:
+  - { src: dotfiles/dot_aliases.zsh, dest: ~/.config/zsh/aliases.zsh }
+  - { src: dotfiles/dot_completions.zsh, dest: ~/.config/zsh/completions.zsh }
+  - { src: dotfiles/dot_condarc, dest: ~/.conda/condarc }
+  - { src: dotfiles/dot_editorconfig, dest: ~/.editorconfig }
+  - { src: dotfiles/dot_exports.zsh, dest: ~/.config/zsh/exports.zsh }
+  - { src: dotfiles/dot_functions.zsh, dest: ~/.config/zsh/functions.zsh }
+  - { src: dotfiles/dot_ghostty, dest: "~/Library/Application Support/com.mitchellh.ghostty/config" }
+  - { src: dotfiles/dot_gitconfig, dest: ~/.gitconfig }
+  - { src: dotfiles/dot_gitignore_global, dest: ~/.gitignore_global }
+  - { src: dotfiles/dot_gpg.conf, dest: ~/.gnupg/gpg.conf }
+  - { src: dotfiles/dot_hushlogin, dest: ~/.hushlogin }
+  - { src: dotfiles/dot_jupyter_server_config.py, dest: ~/.jupyter/jupyter_server_config.py }
+  - { src: dotfiles/dot_pip.conf, dest: ~/.config/pip/pip.conf }
+  - { src: dotfiles/dot_pypirc, dest: ~/.pypirc }
+  - { src: dotfiles/dot_pythonrc.py, dest: ~/.pythonrc.py }
+  - { src: dotfiles/dot_tmux.conf, dest: ~/.config/tmux/tmux.conf }
+  - { src: dotfiles/dot_vimrc, dest: ~/.vimrc }
+  - { src: dotfiles/dot_vscode.json, dest: "~/Library/Application Support/Code/User/settings.json" }
+  - { src: dotfiles/dot_zlogout, dest: ~/.zlogout }
+  - { src: dotfiles/dot_zprofile, dest: ~/.zprofile }
+  - { src: dotfiles/dot_zshenv, dest: ~/.zshenv }
+  - { src: dotfiles/dot_zshrc, dest: ~/.zshrc }

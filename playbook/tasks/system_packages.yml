@@ -1,55 +1,29 @@
 ---
+- include_vars: vars/system_packages.yml
+
 - name: install system dependencies and updates
-  become: true
-  become_method: sudo
   block:
-    - name: select the fastest mirror from the fedora public mirrors for the main package manager
-      ini_file:
-        path: /etc/dnf/dnf.conf
-        section: main
-        option: fastestmirror
-        value: "true" # it should be a quoted string to avoid change issues
-
-    - name: add the required public keys to the main system database for free and non-free repositories
-      rpm_key:
-        key: "{{ item }}"
-        state: present
-      with_items:
-        - "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-{{ rpmfusion_key_version }}"
-        - "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-nonfree-fedora-{{ rpmfusion_key_version }}"
-
-    - name: install free and non-free repositories to provide extra packages for the current operating system
-      dnf:
-        name:
-          - "https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ rpmfusion_distribution_version }}.noarch.rpm"
-          - "https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ rpmfusion_distribution_version }}.noarch.rpm"
-        state: present
-
-    - name: install the required repository to provide visual studio code packages for the current operating system
-      yum_repository:
-        name: vscode
-        description: visual studio code repository
-        baseurl: "https://packages.microsoft.com/yumrepos/vscode"
-        gpgkey: "https://packages.microsoft.com/keys/microsoft.asc"
-        gpgcheck: true
-        state: present
-
-    - name: check the repositories for newer packages and updates them
-      dnf:
-        name: "*"
+    - name: install the required applications on the current machine
+      environment:
+        HOMEBREW_NO_AUTO_UPDATE: 1
+      homebrew_cask:
+        install_options: force # necessary for casks that overwrite existing apps or have pre-installed components
+        name: "{{ required_homebrew_casks }}"
         state: latest
-        update_cache: true
 
-    - name: install the required development tools on the current operating system
-      dnf:
-        name: "{{ required_development_tools }}"
+    - name: install essential system packages and development tools
+      environment:
+        HOMEBREW_NO_AUTO_UPDATE: 1
+      homebrew:
+        name: "{{ required_homebrew_packages }}"
         state: latest
-        update_cache: true
-
-    - name: clean up packages installed as dependencies but which are no longer required
-      dnf:
-        autoremove: true
-  when: ansible_distribution | lower == "fedora"
+  always:
+    - name: remove all contents from the homebrew cache directory
+      environment:
+        # It is assumed that the session from which playbook is launched does not contain a configured path to search for homebrew.
+        PATH: "/opt/homebrew/bin:{{ lookup('ansible.builtin.env', 'PATH') }}"
+      command: rm -f -r -- "$(brew --cache)"
+  when: ansible_distribution == "MacOSX"
   tags:
     - packages
     - packages-workstation

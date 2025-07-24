@@ -1,41 +1,66 @@
 ---
-- name: check if system daemon directory exists
-  stat:
-    path: /etc/systemd/system
-  register: system_daemon_directory
+- include_vars: vars/user_services.yml
 
 - name: install and start user's services
   block:
     - name: create new private variables for this logical group of tasks
       set_fact:
-        services_location: ~/.config/systemd/user
+        services_location: ~/Library/LaunchAgents
 
     - name: create a new directory to store user's own units on the current machine
       file:
         path: "{{ services_location }}"
         state: directory
         recurse: false
-        owner: "{{ ansible_env.USER }}"
-        group: "{{ ansible_env.USER }}"
+        owner: "{{ user }}"
+        group: "{{ group }}"
         mode: 0755
 
     - name: install the required services for this user on the current operating system
       copy:
         src: "{{ item }}"
         dest: "{{ services_location }}" # it is a path to put user's own units
-        owner: "{{ ansible_env.USER }}"
-        group: "{{ ansible_env.USER }}"
+        owner: "{{ user }}"
+        group: "{{ group }}"
         mode: 0644
+      loop_control:
+        label: "{{ item | basename }}"
+      with_items: "{{ required_user_services }}"
+
+    - name: gather labels for each launch agent
+      # The launch daemon status can only be checked using its service label so we use built-in tools to retrieve it.
+      command: "/usr/libexec/PlistBuddy -c 'Print Label' {{ services_location }}/{{ item | basename }}"
+      register: user_service_labels
+      changed_when: false
+      loop_control:
+        label: "{{ item | basename }}"
+      with_items: "{{ required_user_services }}"
+
+    - name: use the label to check if the launch agent is running
+      command: "launchctl list {{ user_service_labels.results[service_index].stdout }}"
+      register: user_service_statuses
+      changed_when: false
+      failed_when: false # prevent task failure if the launch agent is not running or not found
+      loop_control:
+        index_var: service_index
+        label: "{{ item | basename }}"
       with_items: "{{ required_user_services }}"
 
     - name: start and enable all user's services on the current operating system
-      systemd:
-        name: "{{ item | basename }}" # get the current service name
-        enabled: true
-        scope: user
-        state: stopped
+      shell: |
+        launchctl load -w {{ services_location }}/{{ item | basename }}
+
+        # Explicitly trigger the execution of an existing service.
+        launchctl start {{ user_service_labels.results[service_index].stdout }}
+      register: service_bootstrap_status
+      changed_when: service_bootstrap_status.rc == 0
+      failed_when: service_bootstrap_status.rc > 0
+      when: user_service_statuses.results[service_index].rc != 0
+      loop_control:
+        index_var: service_index
+        label: "{{ item | basename }}"
       with_items: "{{ required_user_services }}"
-  when: ansible_distribution | lower == "fedora" and system_daemon_directory.stat.exists
+  when: ansible_distribution == "MacOSX"
   tags:
     - services
     - services-workstation
