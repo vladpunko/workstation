@@ -2,6 +2,13 @@
 
 sudo -v
 
+sudo scutil --set ComputerName moon
+sudo scutil --set HostName moon
+sudo scutil --set LocalHostName moon
+
+# Flush system caches to reflect changes.
+dscacheutil -flushcache
+
 # Close all system preferences windows to avoid them overriding the settings that will be modified.
 osascript -e 'tell application "System Preferences" to quit'
 
