@@ -49,3 +49,5 @@ alias myip='curl --disable "https://checkip.amazonaws.com"'
 alias copyline='tr -d "\\n" | pbcopy'
 
 alias r='reset'
+
+alias zetid='date "+%Y%m%d%H%M" | tr -d "\\n" | pbcopy'

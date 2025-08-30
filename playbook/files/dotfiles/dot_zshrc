@@ -49,10 +49,10 @@ bindkey '\C-x\C-e' edit-command-line
 source "${HOME}/.miniconda/etc/profile.d/conda.sh" 2> /dev/null
 
 # Start the main tool to download and compile the specified python version.
-eval -- "$(pyenv init --path)" 2> /dev/null
+eval -- "$(command pyenv init --path)" 2> /dev/null
 
 # Start the preferred environment management system for user's python interpreters on the current machine.
 source -- "$(command -v virtualenvwrapper.sh)" 2> /dev/null
 
 # Load the key combinations and enable shell completion for the preferred command-line finder on the current machine.
-eval -- "$(fzf --zsh)" 2> /dev/null
+eval -- "$(command fzf --zsh)" 2> /dev/null
