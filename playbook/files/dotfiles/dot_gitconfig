@@ -86,6 +86,9 @@
 [init]
   defaultBranch = master
 
+[rerere]
+  enabled = true
+
 [user]
   email = iam.vlad.punko@gmail.com
 

@@ -41,6 +41,7 @@ required_homebrew_packages:
   - gzip
   - hashdeep
   - htop
+  - klogg
   - lazygit
   - libb2 # python dependency
   - lnav
