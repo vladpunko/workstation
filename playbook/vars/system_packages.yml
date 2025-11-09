@@ -6,9 +6,9 @@ required_homebrew_casks:
   - discord
   - docker
   - drawio
-  - firefox
   - ghostty
   - gimp
+  - google-chrome
   - maccy
   - obsidian
   - ollama
@@ -64,6 +64,7 @@ required_homebrew_packages:
   - tree
   - unzip
   - uv
+  - vim
   - vmtouch
   - wget
   - xz # python dependency
