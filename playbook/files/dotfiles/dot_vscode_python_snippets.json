@@ -1,0 +1,42 @@
+{
+	"Insert a shebang line.": {
+		"prefix": "shebang",
+		"body": "#!/usr/bin/env python\n\n",
+		"description": "Insert a shebang line to specify the interpreter for direct script execution."
+	},
+	"Create the primary entry point for the script.": {
+		"prefix": "main",
+		"body": [
+			"def main():",
+			"\t${1:pass}",
+			"",
+			"",
+			"if __name__ == \"__main__\":",
+			"\tmain()",
+			""
+		],
+		"description": "Invoke the entry point function when the script is executed directly."
+	},
+	"Create a new block to handle exceptions.": {
+		"prefix": "try/except",
+		"body": [
+			"try:",
+			"\t${1:pass}",
+			"except Exception as err:",
+			"\t${2:pass}"
+		],
+		"description": "Insert a new block with error handling placeholder."
+	},
+	"File header comment.": {
+		"prefix": "header",
+		"body": [
+			"# -*- coding: utf-8 -*-",
+			"",
+			"# Created by: Vladislav Punko <iam.vlad.punko@gmail.com>",
+			"# Created date: $CURRENT_YEAR-$CURRENT_MONTH-$CURRENT_DATE",
+			"",
+			""
+		],
+		"description": "Insert a standardized file header with metadata."
+	}
+}

@@ -18,6 +18,7 @@ dotfiles:
   - { src: dotfiles/dot_tmux.conf, dest: ~/.config/tmux/tmux.conf }
   - { src: dotfiles/dot_vimrc, dest: ~/.vimrc }
   - { src: dotfiles/dot_vscode.json, dest: "~/Library/Application Support/Code/User/settings.json" }
+  - { src: dotfiles/dot_vscode_python_snippets.json, dest: "~/Library/Application Support/Code/User/snippets/python.json" }
   - { src: dotfiles/dot_zlogout, dest: ~/.zlogout }
   - { src: dotfiles/dot_zprofile, dest: ~/.zprofile }
   - { src: dotfiles/dot_zshenv, dest: ~/.zshenv }
