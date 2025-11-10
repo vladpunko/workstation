@@ -1,4 +1,6 @@
 ---
+- include_vars: vars/system_packages.yml
+
 - name: install system dependencies and updates
   become: true
   become_method: sudo
@@ -42,14 +44,14 @@
 
     - name: install the required development tools on the current operating system
       dnf:
-        name: "{{ required_development_tools }}"
+        name: "{{ required_packages }}"
         state: latest
         update_cache: true
 
     - name: clean up packages installed as dependencies but which are no longer required
       dnf:
         autoremove: true
-  when: ansible_distribution | lower == "fedora"
+  when: ansible_distribution == "Fedora"
   tags:
     - packages
     - packages-workstation

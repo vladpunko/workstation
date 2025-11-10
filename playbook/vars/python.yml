@@ -1,0 +1,18 @@
+---
+miniconda_version: 25.5.1-1
+
+# Set the preferred version of the main python interpreter on the current machine.
+# See information: https://repo.anaconda.com/miniconda
+miniconda_python_version: py313
+
+miniconda_installer_checksum: sha256:612af113b49db0368e2be41ac4d51b7088eebd5f31daeeb89f23fff8f920db58
+
+required_python_packages:
+  - "jupyter>=1.1.0"
+  - "jupyterlab>=4.4.0"
+  - auditwheel
+  - psutil
+  - sshuttle
+  - twine
+  - virtualenv
+  - virtualenvwrapper

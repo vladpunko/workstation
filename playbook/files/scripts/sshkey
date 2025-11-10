@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+
+# Copyright 2020 (c) Vladislav Punko <iam.vlad.punko@gmail.com>
+
+set -o errexit
+set -o nounset
+
+path="${HOME}/.ssh/id_ed25519"
+
+if python3 -u - << EOF
+import os, sys
+
+sys.exit(os.path.isfile("${path}"))
+EOF
+then
+  # Create new ssh host keys with an empty passphrase.
+  ssh-keygen -t ed25519 -C "$(hostname)" -f "${path}" -q -N ''
+fi
+
+# Output the public ssh key to the console.
+cat "${path}.pub"

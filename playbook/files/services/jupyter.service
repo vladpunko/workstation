@@ -1,8 +1,8 @@
 [Unit]
-Description=The main notebook server
+Description=The main jupyter server
 
 [Service]
-# Start the main notebook server on the current operating system.
+# Start the main jupyter notebook server on the current operating system.
 ExecStart=%h/.miniconda/bin/jupyter-notebook
 
 # Restart the main process at once.

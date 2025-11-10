@@ -3,16 +3,23 @@
 region='en_US.UTF-8'
 
 [org/gnome/shell]
-favorite-apps=['org.gnome.Nautilus.desktop', 'org.gnome.Terminal.desktop', 'firefox.desktop', 'code.desktop', 'emacs.desktop']
+# Use this extension to show icons in the tray bar.
+# See information: https://github.com/ubuntu/gnome-shell-extension-appindicator
+enabled-extensions=['appindicatorsupport@rgcjonas.gmail.com']
+favorite-apps=['org.gnome.Nautilus.desktop', 'org.gnome.Ptyxis.desktop', 'chromium-browser.desktop', 'net.thunderbird.Thunderbird.desktop', 'code.desktop', 'org.gnome.TextEditor.desktop']
+last-selected-power-profile='performance'
 
-[org/gtk/settings/file-chooser]
+[org/gnome/settings-daemon/plugins/power]
+idle-dim=false
+sleep-inactive-ac-timeout=7200
+sleep-inactive-battery-timeout=1800
+
+[org/gtk/gtk4/settings/file-chooser]
 show-hidden=true
+sort-directories-first=true
 
 [org/gnome/desktop/interface]
 show-battery-percentage=true
-
-[org/gnome/desktop/calendar]
-show-weekdate=false
 
 [org/gnome/desktop/privacy]
 remember-recent-files=false
@@ -37,16 +44,19 @@ show-in-lock-screen=false
 [org/gnome/desktop/media-handling]
 autorun-never=true
 
-[org/gnome/terminal/legacy]
-menu-accelerator-enabled=false
-shortcuts-enabled=false
-
-[org/gnome/terminal/legacy/profiles:]
-default='ff1c04d4-2842-4f34-b5ac-726f3bcba249'
-list=['ff1c04d4-2842-4f34-b5ac-726f3bcba249']
-
-[org/gnome/terminal/legacy/profiles:/:ff1c04d4-2842-4f34-b5ac-726f3bcba249]
-scrollbar-policy='never'
-
-# Suppress attempts to generate noise in the current interactive session.
+[org/gnome/Ptyxis]
 audible-bell=false
+default-profile-uuid='4bf9765b7b28053097d88b8c68ae069b'
+profile-uuids=['4bf9765b7b28053097d88b8c68ae069b']
+restore-session=false
+restore-window-size=false
+scrollbar-policy='never'
+visual-bell=false
+window-size=(uint32 200, uint32 50)
+
+[org/gnome/Ptyxis/Profiles/4bf9765b7b28053097d88b8c68ae069b]
+limit-scrollback=false
+palette='Dark Pastel'
+
+[org/gnome/Ptyxis/Shortcuts]
+primary-menu=''

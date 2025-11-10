@@ -1,0 +1,111 @@
+---
+rpmfusion_distribution_version: 42
+
+# Set the version of the required public keys for this system distribution.
+# See information: https://rpmfusion.org/keys
+rpmfusion_key_version: 2020
+
+required_packages:
+  - "@C Development Tools and Libraries" # some c and c++ dependencies
+  - "@Development Tools"
+  - ansible
+  - aspell
+  - aspell-en
+  - aspell-ru
+  - atool
+  - bzip2 # python dependency
+  - bzip2-devel # python dependency
+  - chromium
+  - clamav
+  - clamav-update
+  - clang
+  - cloc
+  - cmake
+  - code
+  - copyq
+  - curl
+  - dconf
+  - dconf-editor
+  - detox
+  - dnf-automatic
+  - dnf-plugin-system-upgrade
+  - docker
+  - docker-compose
+  - expect
+  - flameshot
+  - fzf
+  - gcc
+  - gdb
+  - gdbm-libs # python dependency
+  - gimp
+  - git
+  - git-extras
+  - git-lfs
+  - git-secrets
+  - glogg
+  - gnome-shell-extension-appindicator
+  - gnome-tweak-tool
+  - gnupg
+  - grep
+  - gzip
+  - htop
+  - ioping
+  - iotop
+  - jetbrains-mono-fonts # as a highly readable typeface for programming
+  - kernel-devel
+  - kernel-headers
+  - less
+  - libcgroup-tools
+  - libffi-devel # python dependency
+  - libnsl2 # python dependency
+  - libuuid-devel # python dependency
+  - lm_sensors
+  - lnav
+  - lshw
+  - lynis
+  - make
+  - makeself
+  - mc
+  - md5deep
+  - mpv
+  - ncdu
+  - nmap
+  - okular
+  - ollama
+  - openssh
+  - openssh-server
+  - openssl
+  - openssl-devel # python dependency
+  - patch
+  - poetry
+  - putty
+  - pypy3
+  - python3
+  - python3-devel
+  - readline-devel # python dependency
+  - repo
+  - rsync
+  - shellcheck
+  - sqlite
+  - sqlite-devel # python dependency
+  - sysstat
+  - telegram
+  - thunderbird
+  - tig
+  - tk-devel # python dependency
+  - tmux
+  - transmission
+  - tree
+  - unrar
+  - unzip
+  - uv
+  - valgrind
+  - vim
+  - vlc
+  - vmtouch
+  - wget
+  - wl-clipboard
+  - xz
+  - xz-devel # python dependency
+  - zlib-devel # python dependency
+  - zsh

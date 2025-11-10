@@ -1,4 +1,6 @@
 ---
+- include_vars: vars/user_services.yml
+
 - name: check if system daemon directory exists
   stat:
     path: /etc/systemd/system
@@ -15,16 +17,16 @@
         path: "{{ services_location }}"
         state: directory
         recurse: false
-        owner: "{{ ansible_env.USER }}"
-        group: "{{ ansible_env.USER }}"
+        owner: "{{ user }}"
+        group: "{{ group }}"
         mode: 0755
 
     - name: install the required services for this user on the current operating system
       copy:
         src: "{{ item }}"
         dest: "{{ services_location }}" # it is a path to put user's own units
-        owner: "{{ ansible_env.USER }}"
-        group: "{{ ansible_env.USER }}"
+        owner: "{{ user }}"
+        group: "{{ group }}"
         mode: 0644
       with_items: "{{ required_user_services }}"
 
@@ -35,7 +37,7 @@
         scope: user
         state: stopped
       with_items: "{{ required_user_services }}"
-  when: ansible_distribution | lower == "fedora" and system_daemon_directory.stat.exists
+  when: ansible_distribution == "Fedora" and system_daemon_directory.stat.exists
   tags:
     - services
     - services-workstation

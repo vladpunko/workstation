@@ -33,9 +33,15 @@ sudo sh -c 'fwupdmgr refresh --force && fwupdmgr update --assume-yes'
 sudo dnf swap ffmpeg-free ffmpeg --allowerasing
 
 # Step -- 3.
-sudo dnf group install --with-optional Multimedia
+sudo dnf group install --with-optional multimedia
+
+# Step -- 4.
+sudo dnf install --assumeyes akmod-nvidia xorg-x11-drv-nvidia xorg-x11-drv-nvidia-cuda
+
+# Step -- 5.
+sudo dnf update --refresh --assumeyes && reboot
 ```
 
 ## License
 
-[MIT](https://choosealicense.com/licenses/mit)
+[MIT](https://choosealicense.com/licenses/mit/)
