@@ -17,6 +17,7 @@ export LANGUAGE=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
 # Set the main settings for the history storage of the executed commands.
+export HISTFILE="${HOME}/.zsh_history"
 export HISTSIZE=65535
 export SAVEHIST=65535
 
