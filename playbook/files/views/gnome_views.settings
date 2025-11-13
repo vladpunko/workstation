@@ -56,6 +56,7 @@ window-size=(uint32 200, uint32 50)
 
 [org/gnome/Ptyxis/Profiles/4bf9765b7b28053097d88b8c68ae069b]
 limit-scrollback=false
+login-shell=false
 palette='Dark Pastel'
 
 [org/gnome/Ptyxis/Shortcuts]
