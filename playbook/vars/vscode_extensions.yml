@@ -13,4 +13,3 @@ required_vscode_extensions:
   - ms-vscode.cmake-tools
   - ms-vscode.cpptools
   - ms-vscode.remote-explorer
-  - visualstudioexptteam.vscodeintellicode # ai-assisted development features for python
