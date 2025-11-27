@@ -9,9 +9,9 @@ required_homebrew_casks:
   - ghostty
   - gimp
   - google-chrome
+  - lm-studio
   - maccy
   - obsidian
-  - ollama
   - spotify
   - telegram
   - textmate
