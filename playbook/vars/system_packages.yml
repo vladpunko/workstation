@@ -12,6 +12,7 @@ required_homebrew_casks:
   - lm-studio
   - maccy
   - obsidian
+  - sourcetree
   - spotify
   - telegram
   - textmate
@@ -52,6 +53,7 @@ required_homebrew_packages:
   - nmap
   - openssh
   - openssl # python dependency
+  - pinentry-mac
   - poetry
   - pypy3
   - python3

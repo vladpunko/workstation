@@ -11,7 +11,7 @@
         recurse: false
         owner: "{{ user }}"
         group: "{{ group }}"
-        mode: 0755
+        mode: 0700
       with_items: "{{ dotfiles }}"
 
     - name: set user's settings for the required programs and packages on the current operating system

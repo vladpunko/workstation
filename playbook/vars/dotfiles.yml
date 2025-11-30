@@ -9,6 +9,7 @@ dotfiles:
   - { src: dotfiles/dot_ghostty, dest: "~/Library/Application Support/com.mitchellh.ghostty/config" }
   - { src: dotfiles/dot_gitconfig, dest: ~/.gitconfig }
   - { src: dotfiles/dot_gitignore_global, dest: ~/.gitignore_global }
+  - { src: dotfiles/dot_gpg_agent.conf, dest: ~/.gnupg/gpg-agent.conf }
   - { src: dotfiles/dot_gpg.conf, dest: ~/.gnupg/gpg.conf }
   - { src: dotfiles/dot_hushlogin, dest: ~/.hushlogin }
   - { src: dotfiles/dot_jupyter_server_config.py, dest: ~/.jupyter/jupyter_server_config.py }
@@ -17,8 +18,8 @@ dotfiles:
   - { src: dotfiles/dot_pythonrc.py, dest: ~/.pythonrc.py }
   - { src: dotfiles/dot_tmux.conf, dest: ~/.config/tmux/tmux.conf }
   - { src: dotfiles/dot_vimrc, dest: ~/.vimrc }
-  - { src: dotfiles/dot_vscode.json, dest: "~/Library/Application Support/Code/User/settings.json" }
   - { src: dotfiles/dot_vscode_python_snippets.json, dest: "~/Library/Application Support/Code/User/snippets/python.json" }
+  - { src: dotfiles/dot_vscode.json, dest: "~/Library/Application Support/Code/User/settings.json" }
   - { src: dotfiles/dot_zlogout, dest: ~/.zlogout }
   - { src: dotfiles/dot_zprofile, dest: ~/.zprofile }
   - { src: dotfiles/dot_zshenv, dest: ~/.zshenv }
