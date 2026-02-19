@@ -48,3 +48,6 @@ defaults write com.apple.finder AppleShowAllFiles -bool true
 # Require password immediately after the screen saver starts or the system wakes from sleep.
 defaults write com.apple.screensaver askForPassword -int 1
 defaults write com.apple.screensaver askForPasswordDelay -int 0
+
+# Make all fonts clearer and more noticeable.
+defaults -currentHost write -g AppleFontSmoothing -int 0

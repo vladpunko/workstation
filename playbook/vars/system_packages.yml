@@ -7,11 +7,11 @@ required_homebrew_casks:
   - docker
   - drawio
   - ghostty
-  - gimp
   - google-chrome
   - lm-studio
   - maccy
   - obsidian
+  - paintbrush
   - sourcetree
   - spotify
   - telegram
