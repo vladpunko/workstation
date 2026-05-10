@@ -6,17 +6,51 @@
 set -o errexit
 set -o nounset
 
+# Restrict the default permissions so newly created key files stay private.
+umask 077
+
 path="${HOME}/.ssh/id_ed25519"
+public_path="${path}.pub"
 
-if python3 -u - << EOF
-import os, sys
+# Write through a temporary file so the public key update stays atomic.
+temp_path="${public_path}.tmp"
 
-sys.exit(os.path.isfile("${path}"))
+# Create `~/.ssh` up front so both key creation and key recovery have a stable
+# target directory on a fresh machine.
+command mkdir -p -- "${HOME}/.ssh"
+
+# Use `python3` for the file-state check so the three cases stay explicit:
+# create a new key pair, rebuild only the missing public key, or just print
+# the existing public key.
+action="$(
+  command python3 -u - "${path}" "${public_path}" <<'EOF'
+from pathlib import Path
+import sys
+
+private_key_path = Path(sys.argv[1])
+public_key_path = Path(sys.argv[2])
+
+if not private_key_path.is_file():
+    print("create")
+elif not public_key_path.is_file():
+    print("restore-public")
+else:
+    print("print")
 EOF
-then
-  # Create new ssh host keys with an empty passphrase.
-  ssh-keygen -t ed25519 -C "$(hostname)" -f "${path}" -q -N ''
-fi
+)"
 
-# Output the public ssh key to the console.
-cat "${path}.pub"
+case "${action}" in
+  create)
+    # Cover the first-run case where no user SSH key exists yet.
+    command ssh-keygen -t ed25519 -C "$(command hostname)" -f "${path}" -q -N ''
+    ;;
+  restore-public)
+    # Cover the recovery case where the private key exists but the public key
+    # file is missing.
+    command ssh-keygen -y -f "${path}" > "${temp_path}"
+    command mv -f -- "${temp_path}" "${public_path}"
+    ;;
+esac
+
+# Always print the current public key so it can be copied immediately.
+command cat "${public_path}"

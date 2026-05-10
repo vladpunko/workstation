@@ -1,60 +1,62 @@
 ---
-- include_vars: vars/python.yml
+- name: Load Python variables
+  ansible.builtin.include_vars: vars/python.yml
 
-- name: install the required python packages and updates
-  block:
-    - name: create new private variables for this logical group of tasks
-      set_fact:
-        # Set the main path where to install miniconda on the current machine.
-        miniconda_location: ~/.miniconda
-
-        # Set the directory under which python versions and shims reside.
-        pyenv_location: ~/.pyenv
-
-    - name: check for miniconda existence on the current machine
-      stat:
-        path: "{{ miniconda_location }}/bin/conda"
-      register: miniconda_conda_executable
-      changed_when: false
-
-    - block:
-        - name: download the miniconda installer from a remote server to the current machine
-          get_url:
-            url: "https://repo.continuum.io/miniconda/Miniconda3-{{ miniconda_python_version }}_{{ miniconda_version }}-MacOSX-{{ ansible_architecture }}.sh"
-            checksum: "{{ miniconda_installer_checksum }}"
-            dest: "{{ lookup('pipe', 'mktemp') }}.sh"
-            timeout: 600 # when downloading the miniconda installer it might take a while
-            owner: "{{ user }}"
-            group: "{{ group }}"
-            mode: 0755
-          register: miniconda_installer
-
-        - name: install miniconda dependencies and packages on the current operating system
-          command: "{{ miniconda_installer.dest }} -b -p {{ miniconda_location }}" # run a local script on the current machine
-          args:
-            creates: "{{ miniconda_location }}"
-      always:
-        - name: delete the downloaded installer from the current machine
-          file:
-            path: "{{ miniconda_installer.dest }}"
-            state: absent
-      when: not miniconda_conda_executable.stat.exists
-
-    - name: install the main tool to download and compile the wanted python version
-      git:
-        repo: "https://github.com/pyenv/pyenv.git"
-        clone: true
-        version: master # the preferred version of this package
-        dest: "{{ pyenv_location }}"
-
-    - name: install the required python packages on the current operating system
-      environment:
-        PIP_CONFIG_FILE: /dev/null
-      pip:
-        executable: "{{ miniconda_location }}/bin/pip"
-        name: "{{ required_python_packages }}"
-        state: latest
+- name: Install Python tooling and packages
   when: ansible_distribution == "MacOSX"
   tags:
     - python
     - python-workstation
+  block:
+    - name: Define local Python paths
+      ansible.builtin.set_fact:
+        # Install Miniconda under `~/.miniconda`.
+        miniconda_location: ~/.miniconda
+
+        # Keep `pyenv` versions and shims under `~/.pyenv`.
+        pyenv_location: ~/.pyenv
+
+    - name: Check whether Miniconda is already installed
+      ansible.builtin.stat:
+        path: "{{ miniconda_location }}/bin/conda"
+      register: miniconda_conda_executable
+      changed_when: false
+
+    - name: Install Miniconda when it is missing
+      when: not miniconda_conda_executable.stat.exists
+      block:
+        - name: Download the Miniconda installer
+          ansible.builtin.get_url:
+            url: "https://repo.anaconda.com/miniconda/Miniconda3-{{ miniconda_python_version }}_{{ miniconda_version }}-MacOSX-{{ ansible_architecture }}.sh"
+            checksum: "{{ miniconda_installer_checksum }}"
+            dest: "{{ lookup('pipe', 'mktemp') }}.sh"
+            timeout: 600 # `get_url` may need extra time for the installer download
+            owner: "{{ user }}"
+            group: "{{ group }}"
+            mode: "0755"
+          register: miniconda_installer
+
+        - name: Install Miniconda
+          ansible.builtin.command: "{{ miniconda_installer.dest }} -b -p {{ miniconda_location }}"
+          args:
+            creates: "{{ miniconda_location }}"
+      always:
+        - name: Delete the downloaded installer
+          ansible.builtin.file:
+            path: "{{ miniconda_installer.dest }}"
+            state: absent
+
+    - name: Install pyenv
+      ansible.builtin.git:
+        repo: "https://github.com/pyenv/pyenv.git"
+        clone: true
+        version: master
+        dest: "{{ pyenv_location }}"
+
+    - name: Install the required Python packages
+      environment:
+        PIP_CONFIG_FILE: /dev/null
+      ansible.builtin.pip:
+        executable: "{{ miniconda_location }}/bin/pip"
+        name: "{{ required_python_packages }}"
+        state: present

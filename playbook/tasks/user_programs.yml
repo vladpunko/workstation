@@ -1,58 +1,60 @@
 ---
-- include_vars: vars/user_programs.yml
+- name: Load user program variables
+  ansible.builtin.include_vars: vars/user_programs.yml
 
-- name: install the required system scripts and programs
+- name: Install user programs and helper scripts
+  when: ansible_distribution == "MacOSX"
+  tags:
+    - programs
+    - programs-workstation
   block:
-    - name: create new private variables for this logical group of tasks
-      set_fact:
+    - name: Define the user script directory
+      ansible.builtin.set_fact:
         scripts_location: ~/.local/bin
 
-    - name: download all program installers required for this system from a remote server to the current machine
-      get_url:
+    - name: Download the required installers
+      ansible.builtin.get_url:
         url: "{{ item }}"
         dest: "{{ lookup('pipe', 'mktemp') }}.sh"
         owner: "{{ user }}"
         group: "{{ group }}"
-        mode: 0755
+        mode: "0755"
       register: downloaded_programs
       with_items: "{{ required_user_programs }}"
 
-    - name: install the required programs on the current operating system
+    - name: Run the downloaded installers
       become: true
-      become_method: sudo
-      command: "{{ item.dest }}"
+      become_method: ansible.builtin.sudo
+      ansible.builtin.command: "{{ item.dest }}"
+      changed_when: true
       loop_control:
         label: "{{ item.url }}"
       with_items: "{{ downloaded_programs.results }}"
 
-    - name: create a new directory to store user's scripts on the current machine
-      file:
+    - name: Create the user script directory
+      ansible.builtin.file:
         path: "{{ scripts_location }}"
         state: directory
         recurse: false
         owner: "{{ user }}"
         group: "{{ group }}"
-        mode: 0755
+        mode: "0755"
 
-    - name: install the required scripts on the current operating system
-      copy:
+    - name: Install the helper scripts
+      ansible.builtin.copy:
         src: "{{ item }}"
         dest: "{{ scripts_location }}"
         owner: "{{ user }}"
         group: "{{ group }}"
-        mode: 0755
+        mode: "0755"
       loop_control:
         label: "{{ item | basename }}"
       with_items: "{{ required_user_scripts }}"
   always:
-    - name: delete all downloaded installers from the current machine
-      file:
+    - name: Delete the downloaded installers
+      ansible.builtin.file:
         path: "{{ item.dest }}"
         state: absent
       loop_control:
         label: "{{ item.url }}"
       with_items: "{{ downloaded_programs.results }}"
-  when: ansible_distribution == "MacOSX"
-  tags:
-    - programs
-    - programs-workstation

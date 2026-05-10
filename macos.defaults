@@ -1,23 +1,30 @@
 #!/usr/bin/env sh
 
+set -o errexit
+set -o nounset
+
+# Keep the workstation hostname fixed at `moon`.
+host_name='moon'
+
 sudo -v
 
-sudo scutil --set ComputerName moon
-sudo scutil --set HostName moon
-sudo scutil --set LocalHostName moon
+# Apply the same hostname to every macOS hostname field.
+sudo scutil --set ComputerName "${host_name}"
+sudo scutil --set HostName "${host_name}"
+sudo scutil --set LocalHostName "${host_name}"
 
 # Flush system caches to reflect changes.
 dscacheutil -flushcache
 
 # Close all system preferences windows to avoid them overriding the settings that will be modified.
-osascript -e 'tell application "System Preferences" to quit'
+osascript -e 'tell application id "com.apple.systempreferences" to quit'
 
 sudo DevToolsSecurity -enable > /dev/null
 
-# Add the current user to the macos developer group.
+# Add the current user to the macOS developer group.
 sudo dseditgroup -o edit -a "${USER}" -t user _developer
 
-# Disable automatic symbol substitutions and corrections system-wide on macos because they interfere with coding and reduce development efficiency.
+# Disable system-wide substitutions that are annoying while coding.
 defaults write NSGlobalDomain NSAutomaticDashSubstitutionEnabled -bool false
 defaults write NSGlobalDomain NSAutomaticPeriodSubstitutionEnabled -bool false
 defaults write NSGlobalDomain NSAutomaticQuoteSubstitutionEnabled -bool false

@@ -1,40 +1,38 @@
 {
-    // Section -- 1.
-    "editor.fontFamily": "JetBrains Mono",
-    "editor.fontLigatures": true,
-    "editor.fontSize": 13,
-    "editor.inlineSuggest.enabled": true,
-    "editor.insertSpaces": true,
-    "editor.letterSpacing": 0.3,
-    "editor.minimap.enabled": false,
-    "editor.renderControlCharacters": true,
-    "editor.renderWhitespace": "all",
-    "editor.rulers": [88, 130],
+  // Editor.
+  "editor.fontFamily": "JetBrains Mono",
+  "editor.fontLigatures": true,
+  "editor.fontSize": 13,
+  "editor.inlineSuggest.enabled": true,
+  "editor.insertSpaces": true,
+  "editor.letterSpacing": 0.3,
+  "editor.minimap.enabled": false,
+  "editor.renderControlCharacters": true,
+  "editor.renderWhitespace": "all",
+  "editor.rulers": [88, 130],
 
-    // Section -- 2.
-    "explorer.compactFolders": false,
+  // Explorer and files.
+  "explorer.autoReveal": false,
+  "explorer.compactFolders": false,
+  "files.autoSave": "onFocusChange",
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
 
-    "files.associations": {
-        "*.toml": "properties"
-    },
-    "files.autoSave": "onFocusChange",
-    "files.insertFinalNewline": true,
-    "files.trimTrailingWhitespace": true,
+  // Workbench.
+  "workbench.colorTheme": "Monokai",
+  "workbench.iconTheme": "vs-minimal",
+  "workbench.sideBar.location": "right",
+  "workbench.startupEditor": "none",
 
-    // Section -- 3.
-    "workbench.iconTheme": "vs-minimal",
-    "workbench.sideBar.location": "right",
-    "workbench.startupEditor": "none",
+  // Telemetry.
+  "telemetry.enableCrashReporter": false,
+  "telemetry.enableTelemetry": false,
+  "telemetry.telemetryLevel": "off",
 
-    // Section -- 4.
-    "telemetry.enableCrashReporter": false,
-    "telemetry.enableTelemetry": false,
-    "telemetry.telemetryLevel": "off",
+  // Git.
+  "git.defaultBranchName": "master",
+  "git.defaultCloneDirectory": "~/Projects/",
 
-    // Section -- 5.
-    "git.defaultBranchName": "master",
-    "git.defaultCloneDirectory": "~/Projects/",
-
-    // Section -- 6.
-    "python.venvPath": "~/.cache/pypoetry/virtualenvs/"
+  // Python.
+  "python.venvPath": "~/Library/Caches/pypoetry/virtualenvs/"
 }

@@ -6,17 +6,31 @@
 set -o errexit
 set -o nounset
 
-brew update
+# Fail early with a clear message when `brew` is not installed.
+if ! command -v brew > /dev/null 2>&1; then
+  echo 'Homebrew is required to run updatesystem.' >&2
+  exit 1
+fi
 
-# Upgrade all homebrew-installed packages to their latest versions.
-brew upgrade
-brew upgrade --cask
+# Refresh the local Homebrew metadata before any upgrades.
+command brew update
 
-# Remove all contents from the homebrew cache directory.
-rm -f -r -- "$(brew --cache)"
+# Upgrade all Homebrew-installed packages to their latest versions.
+command brew upgrade
+command brew upgrade --cask
 
-# Refresh the primary virus definitions on this system.
-freshclam --show-progress
+# Clear cached Homebrew downloads so `brew --cache` does not grow without
+# bounds.
+command rm -f -r -- "$(command brew --cache)"
 
-# Update all programs and packages of the main scientific computation system.
-"${HOME}/.miniconda/bin/conda" update --yes --update-all
+# Run ClamAV updates only when the machine actually has `freshclam` installed.
+if command -v freshclam > /dev/null 2>&1; then
+  # Refresh the primary virus definitions on this system.
+  command freshclam --show-progress
+fi
+
+# Update Miniconda only when the user has a local installation to update.
+if [ -x "${HOME}/.miniconda/bin/conda" ]; then
+  # Update the Miniconda environment when `~/.miniconda/bin/conda` exists.
+  command "${HOME}/.miniconda/bin/conda" update --yes --update-all
+fi

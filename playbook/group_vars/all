@@ -1,3 +1,7 @@
 ---
-user: k28
-group: staff
+# Use the original invoking user when the playbook is launched through `sudo`.
+user: "{{ ansible_env.SUDO_USER | default(ansible_user_id, true) }}"
+
+# Resolve the primary group for the same user so copied files keep the correct
+# ownership.
+group: "{{ lookup('ansible.builtin.pipe', 'id -gn ' ~ (ansible_env.SUDO_USER | default(ansible_user_id, true) | quote)) }}"

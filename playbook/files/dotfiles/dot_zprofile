@@ -1,4 +1,16 @@
 export PYENV_ROOT="${HOME}/.pyenv"
 
-# Set up paths for user executables and application binaries.
-export PATH="${PYENV_ROOT}/bin:${HOME}/.miniconda/bin:${HOME}/bin:${HOME}/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/local/sbin${PATH:+:${PATH}}"
+# Build `PATH` from user tools plus both Homebrew prefixes so the same file
+# works on Apple Silicon and Intel Macs.
+typeset -U path
+path=(
+  "${PYENV_ROOT}/bin"
+  "${HOME}/.miniconda/bin"
+  "${HOME}/bin"
+  "${HOME}/.local/bin"
+  /opt/homebrew/bin
+  /opt/homebrew/sbin
+  /usr/local/bin
+  /usr/local/sbin
+  $path
+)

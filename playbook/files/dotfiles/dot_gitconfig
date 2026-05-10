@@ -48,7 +48,7 @@
   # Ignore the time difference between the index and the current working tree.
   trustctime = false
 
-  # Fix the issue with the unicode decomposition of filenames in a local working repository.
+  # Keep macOS Unicode filename handling transparent instead of re-composing names.
   precomposeUnicode = false
 
   # Make git display names in russian.

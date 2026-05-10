@@ -8,6 +8,7 @@ required_homebrew_casks:
   - drawio
   - ghostty
   - google-chrome
+  - klogg
   - lm-studio
   - maccy
   - obsidian
@@ -30,6 +31,7 @@ required_homebrew_packages:
   - cmake
   - curl
   - docker-compose
+  - exiftool
   - expect
   - ffmpeg
   - fzf
@@ -42,7 +44,6 @@ required_homebrew_packages:
   - gzip
   - hashdeep
   - htop
-  - klogg
   - lazygit
   - libb2 # python dependency
   - lnav
@@ -72,3 +73,4 @@ required_homebrew_packages:
   - xz # python dependency
   - yt-dlp
   - zlib # python dependency
+  - zoxide

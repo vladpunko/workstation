@@ -1,41 +1,46 @@
 ---
-- include_vars: vars/dotfiles.yml
-- include_vars: vars/vscode_extensions.yml
+- name: Load dotfile variables
+  ansible.builtin.include_vars: vars/dotfiles.yml
 
-- name: set user's settings for programs and packages
-  block:
-    - name: create new directories to store user's settings on the current machine
-      file:
-        path: "{{ item.dest | dirname }}" # get the absolute path to store this file on the current machine
-        state: directory
-        recurse: false
-        owner: "{{ user }}"
-        group: "{{ group }}"
-        mode: 0700
-      with_items: "{{ dotfiles }}"
+- name: Load Visual Studio Code extension variables
+  ansible.builtin.include_vars: vars/vscode_extensions.yml
 
-    - name: set user's settings for the required programs and packages on the current operating system
-      copy:
-        src: "{{ item.src }}"
-        dest: "{{ item.dest }}"
-        owner: "{{ user }}"
-        group: "{{ group }}"
-        mode: 0600
-      with_items: "{{ dotfiles }}"
+- name: Install user dotfiles
   when: ansible_distribution == "MacOSX"
   tags:
     - dotfiles
     - dotfiles-workstation
-
-- name: provision visual studio code environment
   block:
-    - name: install the requred visual studio code extensions on the current machine
-      environment:
-        # It is assumed that the working shell session from which this playbook was launched is not yet configured.
-        PATH: "/opt/homebrew/bin:{{ lookup('ansible.builtin.env', 'PATH') }}"
-      command: code --force --install-extension "{{ item }}"
-      with_items: "{{ required_vscode_extensions }}"
+    - name: Create the parent directories for all dotfiles
+      ansible.builtin.file:
+        path: "{{ item.dest | dirname }}"
+        state: directory
+        recurse: false
+        owner: "{{ user }}"
+        group: "{{ group }}"
+        mode: "0700"
+      with_items: "{{ dotfiles }}"
+
+    - name: Copy the managed dotfiles
+      ansible.builtin.copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        owner: "{{ user }}"
+        group: "{{ group }}"
+        mode: "0600"
+      with_items: "{{ dotfiles }}"
+
+- name: Provision the Visual Studio Code environment
   when: ansible_distribution == "MacOSX"
   tags:
     - vscode
     - vscode-workstation
+  block:
+    - name: Install the required Visual Studio Code extensions
+      environment:
+        # Include both Homebrew prefixes in `PATH` so the playbook works on
+        # Intel and Apple Silicon Macs.
+        PATH: "/opt/homebrew/bin:/usr/local/bin:{{ lookup('ansible.builtin.env', 'PATH') }}"
+      ansible.builtin.command: code --force --install-extension "{{ item }}"
+      changed_when: true
+      with_items: "{{ required_vscode_extensions }}"

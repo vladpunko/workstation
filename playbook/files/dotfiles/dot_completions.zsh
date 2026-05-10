@@ -1,19 +1,33 @@
 # Load default completions.
 autoload -Uz compinit
 
+# Keep the completion cache in a predictable location under
+# `${XDG_CACHE_HOME}/zsh`.
+command mkdir -p -- "${XDG_CACHE_HOME}/zsh"
+
 # Caching autocompletion.
-if python3 -u - << EOF
-import os, sys, time
+# Use `python3` here because the file-age check is clearer than the zsh glob
+# qualifier equivalent and keeps the `compinit` cache logic portable across
+# macOS setups.
+if command python3 -u - "${HOME}/.zcompdump" <<'EOF'
+import sys
+import time
+from pathlib import Path
+
+path = Path(sys.argv[1])
 
 try:
-  sys.exit(time.time() - os.path.getmtime("${HOME}/.zcompdump") > 24 * 60 * 60)
+    if time.time() - path.stat().st_mtime <= 24 * 60 * 60:
+        raise SystemExit(0)
 except OSError:
-  sys.exit(1)
+    pass
+
+raise SystemExit(1)
 EOF
 then
-  compinit -i
-else
   compinit -C -i
+else
+  compinit -i
 fi
 
 # Menu-like autocompletion selection.
@@ -55,8 +69,9 @@ zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]-_}={[:upper:][:lower:
 
 zstyle ':completion:*' list-colors '=*=90'
 
-# Enable caching to improve performance and responsiveness for commands with extensive or complex completions.
-zstyle ':completion::complete:*' cache-path "${ZSH_CACHE_DIR}"
+# Enable caching to improve performance and responsiveness for commands with
+# extensive or complex completions.
+zstyle ':completion::complete:*' cache-path "${XDG_CACHE_HOME}/zsh"
 zstyle ':completion::complete:*' use-cache yes
 
 # Show single ignored completion matches instead of hiding them.

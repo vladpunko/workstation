@@ -1,56 +1,62 @@
 ---
-- include_vars: vars/user_services.yml
+- name: Load user service variables
+  ansible.builtin.include_vars: vars/user_services.yml
 
-- name: install and start user's services
+- name: Install and start user services
+  when: ansible_distribution == "MacOSX"
+  tags:
+    - services
+    - services-workstation
   block:
-    - name: create new private variables for this logical group of tasks
-      set_fact:
+    - name: Define the LaunchAgents directory
+      ansible.builtin.set_fact:
         services_location: ~/Library/LaunchAgents
 
-    - name: create a new directory to store user's own units on the current machine
-      file:
+    - name: Create the LaunchAgents directory
+      ansible.builtin.file:
         path: "{{ services_location }}"
         state: directory
         recurse: false
         owner: "{{ user }}"
         group: "{{ group }}"
-        mode: 0755
+        mode: "0755"
 
-    - name: install the required services for this user on the current operating system
-      copy:
+    - name: Install the required user services
+      ansible.builtin.copy:
         src: "{{ item }}"
-        dest: "{{ services_location }}" # it is a path to put user's own units
+        dest: "{{ services_location }}"
         owner: "{{ user }}"
         group: "{{ group }}"
-        mode: 0644
+        mode: "0644"
       loop_control:
         label: "{{ item | basename }}"
       with_items: "{{ required_user_services }}"
 
-    - name: gather labels for each launch agent
-      # The launch daemon status can only be checked using its service label so we use built-in tools to retrieve it.
-      command: "/usr/libexec/PlistBuddy -c 'Print Label' {{ services_location }}/{{ item | basename }}"
+    - name: Gather labels for each launch agent
+      # `launchctl list` works with service labels, so read the label from each
+      # plist first.
+      ansible.builtin.command: "/usr/libexec/PlistBuddy -c 'Print Label' {{ services_location }}/{{ item | basename }}"
       register: user_service_labels
       changed_when: false
       loop_control:
         label: "{{ item | basename }}"
       with_items: "{{ required_user_services }}"
 
-    - name: use the label to check if the launch agent is running
-      command: "launchctl list {{ user_service_labels.results[service_index].stdout }}"
+    - name: Check whether each launch agent is already running
+      ansible.builtin.command: "launchctl list {{ user_service_labels.results[service_index].stdout }}"
       register: user_service_statuses
       changed_when: false
-      failed_when: false # prevent task failure if the launch agent is not running or not found
+      failed_when: false # do not fail when `launchctl list` reports a missing agent
       loop_control:
         index_var: service_index
         label: "{{ item | basename }}"
       with_items: "{{ required_user_services }}"
 
-    - name: start and enable all user's services on the current operating system
-      shell: |
+    - name: Load and start the missing launch agents
+      ansible.builtin.shell: |
         launchctl load -w {{ services_location }}/{{ item | basename }}
 
-        # Explicitly trigger the execution of an existing service.
+        # Trigger the service immediately after `launchctl load -w`.
         launchctl start {{ user_service_labels.results[service_index].stdout }}
       register: service_bootstrap_status
       changed_when: service_bootstrap_status.rc == 0
@@ -60,7 +66,3 @@
         index_var: service_index
         label: "{{ item | basename }}"
       with_items: "{{ required_user_services }}"
-  when: ansible_distribution == "MacOSX"
-  tags:
-    - services
-    - services-workstation

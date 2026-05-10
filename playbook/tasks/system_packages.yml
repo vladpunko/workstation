@@ -1,29 +1,44 @@
 ---
-- include_vars: vars/system_packages.yml
+- name: Load system package variables
+  ansible.builtin.include_vars: vars/system_packages.yml
 
-- name: install system dependencies and updates
-  block:
-    - name: install the required applications on the current machine
-      environment:
-        HOMEBREW_NO_AUTO_UPDATE: 1
-      homebrew_cask:
-        install_options: force # necessary for casks that overwrite existing apps or have pre-installed components
-        name: "{{ required_homebrew_casks }}"
-        state: latest
-
-    - name: install essential system packages and development tools
-      environment:
-        HOMEBREW_NO_AUTO_UPDATE: 1
-      homebrew:
-        name: "{{ required_homebrew_packages }}"
-        state: latest
-  always:
-    - name: remove all contents from the homebrew cache directory
-      environment:
-        # It is assumed that the session from which playbook is launched does not contain a configured path to search for homebrew.
-        PATH: "/opt/homebrew/bin:{{ lookup('ansible.builtin.env', 'PATH') }}"
-      command: rm -f -r -- "$(brew --cache)"
+- name: Install system dependencies and updates
   when: ansible_distribution == "MacOSX"
   tags:
     - packages
     - packages-workstation
+  block:
+    - name: Warm the sudo timestamp for Homebrew-managed system installs
+      become: true
+      become_method: ansible.builtin.sudo
+      ansible.builtin.command: /usr/bin/true
+      changed_when: false
+
+    - name: Install the required applications
+      environment:
+        HOMEBREW_NO_AUTO_UPDATE: "1"
+      community.general.homebrew_cask:
+        install_options: force # allow casks that overwrite existing apps
+        name: "{{ required_homebrew_casks }}"
+        state: present
+
+    - name: Install essential system packages and development tools
+      environment:
+        HOMEBREW_NO_AUTO_UPDATE: "1"
+      community.general.homebrew:
+        name: "{{ required_homebrew_packages }}"
+        state: present
+  always:
+    - name: Get the Homebrew cache directory path
+      environment:
+        # Include both Homebrew prefixes in `PATH` so the playbook works on
+        # Intel and Apple Silicon Macs.
+        PATH: "/opt/homebrew/bin:/usr/local/bin:{{ lookup('ansible.builtin.env', 'PATH') }}"
+      ansible.builtin.command: brew --cache
+      register: homebrew_cache_directory
+      changed_when: false
+
+    - name: Remove all contents from the Homebrew cache directory
+      ansible.builtin.file:
+        path: "{{ homebrew_cache_directory.stdout }}"
+        state: absent

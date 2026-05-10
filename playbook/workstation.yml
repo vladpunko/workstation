@@ -1,11 +1,20 @@
 ---
-- hosts: localhost
-  # ---
+- name: Provision the local workstation
+  hosts: localhost
   gather_facts: true
 
   tasks:
-    - include_tasks: tasks/system_packages.yml
-    - include_tasks: tasks/python.yml
-    - include_tasks: tasks/user_workspace.yml
-    - include_tasks: tasks/user_programs.yml
-    - include_tasks: tasks/user_services.yml
+    - name: Include system package tasks
+      ansible.builtin.include_tasks: tasks/system_packages.yml
+
+    - name: Include Python tasks
+      ansible.builtin.include_tasks: tasks/python.yml
+
+    - name: Include workspace tasks
+      ansible.builtin.include_tasks: tasks/user_workspace.yml
+
+    - name: Include user program tasks
+      ansible.builtin.include_tasks: tasks/user_programs.yml
+
+    - name: Include user service tasks
+      ansible.builtin.include_tasks: tasks/user_services.yml

@@ -1,53 +1,76 @@
+# Make the current file executable with a short `chmod +x` shortcut.
 alias -- +x='chmod +x'
 
-# Start a proper python interpreter regarding the working user's environment on the current machine.
+# Remove Python bytecode files and `__pycache__` directories from the current
+# working tree.
+alias pyclean='find "${PWD}" \( -name "*.py[cod]" -o -name "__pycache__" \) -exec rm -f -r {} +'
+
+# Start `IPython` explicitly through `python3` so it follows the active Python
+# environment on this machine.
 alias ipython='python3 -c "import IPython; IPython.terminal.ipapp.launch_new_instance()"'
 
-alias pyclean='find "${PWD}" -name "*.py[cod]" -o -name "__pycache__" -exec rm -f -r {} +'
-
-# Build and install new python interpreters on the current machine.
+# Force `pyenv` builds to use `clang`, which matches the macOS toolchain on
+# this workstation.
 alias pyenv='env CC=clang pyenv'
 
+# Route bare `python` calls to `python3`.
 alias python='python3'
 
+# Move one directory up.
 alias ..='cd ..'
+
+# Move two directories up.
 alias ...='cd ../..'
+
+# Move three directories up.
 alias ....='cd ../../..'
+
+# Move four directories up.
 alias .....='cd ../../../..'
 
+# Jump back to the previous working directory.
 alias -- -='cd -'
 
-# Protect deletions with interactive prompts and disable spell-check to prevent errors.
+# Protect `rm` with interactive prompts and disable zsh spell correction for
+# destructive deletions.
 alias rm='nocorrect rm -I -R'
 
-alias ls='ls --color=auto'
+# Use colored `ls` output with the macOS `-G` flag.
+alias ls='ls -G'
 
-# Show all files in the current working directory with their details.
-alias la='ls -A -F -h -l'
+# Show all files, including dotfiles, with detailed colored `ls` output.
+alias la='ls -A -F -G -h -l'
 
+# Keep `grep` output colorized when matches are printed.
 alias grep='grep --color=auto'
 
-# Connect or create a new working tmux session.
+# Attach to an existing `tmux` session or create a new one when none exists.
 alias tm='tmux attach || tmux new-session'
 
-# Create a new working session of the preferred file manager on the current machine.
+# Start the preferred `mc` file manager with the local color and mouse
+# settings.
 alias mc='mc --color --nomouse --skin=modarin256'
 
-# Create a new working session of the preferred process viewer on the current machine.
+# Start `htop` with the preferred sorting and mouse behavior for this
+# workstation.
 alias htop='htop --no-mouse --delay=10 --sort-key=PERCENT_MEM'
 
-# Drop all previous output in the current interactive session.
-alias dropout='echo -e -n "\\033c\\033[3J"'
+# Clear the visible terminal buffer and reset the current screen.
+alias dropout='printf "\\033c\\033[3J"'
 
-# Show each path on a separate line where the current operating system will search for executables when running a command.
-alias paths='echo -e "${PATH//:/\\n}"'
+# Print each `PATH` entry on its own line for easier inspection.
+alias paths='print -l -- ${(s/:/)PATH}'
 
-# Get information about the public network address assigned to the current machine.
-alias myip='curl --disable "https://checkip.amazonaws.com"'
+# Fetch the current public IP address with a quiet but failure-aware `curl`
+# invocation.
+alias myip='curl --disable --fail --silent --show-error https://checkip.amazonaws.com'
 
-# Trim new lines and copy data to the system clipboard.
+# Strip trailing newlines from stdin and copy the result to the macOS
+# clipboard.
 alias copyline='tr -d "\\n" | pbcopy'
 
+# Reset the current terminal session.
 alias r='reset'
 
+# Copy a compact timestamp like `YYYYMMDDHHMM` to the clipboard.
 alias zetid='date "+%Y%m%d%H%M" | tr -d "\\n" | pbcopy'

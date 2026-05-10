@@ -1,10 +1,8 @@
 # workstation
 
-```bash
-echo "${HOME} sweet ${HOME}"
-```
+Personal macOS workstation bootstrap, dotfiles, and local provisioning playbook.
 
-## Macbook pre-installation
+## macOS pre-installation
 
 ```bash
 # Step -- 1.
@@ -25,19 +23,35 @@ xcode-select --print-path
 git clone --depth=1 --branch=master https://github.com/vladpunko/workstation.git
 
 # Step -- 2.
-cd ./workstation/playbook
+cd ./workstation
 
 # Step -- 3.
-python3 -m venv .venv && source ./.venv/bin/activate
+python3 -m venv ./playbook/.venv
 
 # Step -- 4.
-python3 -m pip install --requirement=requirements.txt
+source ./playbook/.venv/bin/activate
 
 # Step -- 5.
-ansible-playbook --ask-become-pass --inventory=hosts workstation.yml
+python3 -m pip install --requirement=./playbook/requirements.txt
 
 # Step -- 6.
-sh macos.defaults
+cd ./playbook
+
+# Step -- 7.
+ansible-playbook --ask-become-pass workstation.yml
+
+# Step -- 8.
+cd ..
+
+# Step -- 9.
+sh ./macos.defaults
+```
+
+## Git Hooks
+
+```bash
+python3 -m pip install pre-commit
+pre-commit install
 ```
 
 ## License

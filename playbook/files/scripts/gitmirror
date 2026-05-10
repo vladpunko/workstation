@@ -6,7 +6,21 @@
 set -o errexit
 set -o nounset
 
+_require_command() {
+  # Fail fast with a dedicated message when a required external program is
+  # missing from the machine.
+  if command -v "$1" > /dev/null 2>&1; then
+    _print_success "$2"
+  else
+    _print_error "$3"
+    _print_warning "$4"
+    exit 1
+  fi
+}
+
 _print_error() {
+  # `printf` understands `\033` in the format string, so the color escapes stay
+  # readable without relying on `echo`-specific flags.
   printf "[\\033[31;1mERROR\\033[0m]: %s\\n" "$1" >&2
 }
 
@@ -18,76 +32,83 @@ _print_warning() {
   printf "[\\033[33;1mWARNING\\033[0m]: %s\\n" "$1"
 }
 
-if [ -x "$(command -v git)" ]; then
-  _print_success 'Git is installed.'
-else
-  _print_error 'Git does not seem to be installed.'
-  _print_warning 'Install git via your package manager or directly from https://git-scm.com/.'
-  exit 1
-fi
+_require_command \
+  git \
+  'Git is installed.' \
+  'Git does not seem to be installed.' \
+  'Install git via your package manager or directly from https://git-scm.com/.'
 
-if [ -x "$(command -v git-lfs)" ]; then
-  _print_success 'Git large file storage is detected and ready to use.'
-else
-  _print_error 'Git large file storage is missing or not properly installed.'
-  _print_warning 'It can be installed through your package manager or by visiting https://git-lfs.com/.'
-  exit 1
-fi
+_require_command \
+  git-lfs \
+  'Git large file storage is detected and ready to use.' \
+  'Git large file storage is missing or not properly installed.' \
+  'It can be installed through your package manager or by visiting https://git-lfs.com/.'
 
-# Check the number of arguments passed to this script.
+# Require exactly the source and destination repository URLs.
 if [ "$#" -ne 2 ]; then
-  _print_error "You are to use: $(basename -- "$0") <source: URL> <destination: URL>"
-  # Terminate program execution due to invalid arguments.
+  _print_error "You are to use: $(command basename -- "$0") <source: URL> <destination: URL>"
+  # Stop immediately when the invocation is incomplete.
   exit 2
 fi
 
-workdir="$(mktemp -d)"
+# Work in a temporary bare repository so the mirror operation does not touch
+# the caller's current directory.
+workdir="$(command mktemp -d)"
 
 _cleanup() {
-  rm -f -r -- "${workdir}"
+  command rm -f -r -- "${workdir}"
 }
+
+# Always remove the temporary bare repository, even if `git fetch` or
+# `git push --mirror` fails.
 trap _cleanup 0 1 2 3 6
 
 src_url="$1"
 dst_url="$2"
 
-# Ask the current user to approve and continue this dangerous process.
-_print_warning 'Do you want to mirror this repository? [Y/n]: ' && read -r answer
+# Ask for confirmation before mirroring every ref and LFS object.
+printf "[\\033[33;1mWARNING\\033[0m]: Do you want to mirror this repository? [Y/n]: "
+read -r answer
 
-if [ "${answer}" != "${answer#[Yy]}" ]; then
-  _print_warning "Fetching from ${src_url} into ${dst_url}..."
+case "${answer:-Y}" in
+  [Yy]*)
+    # Follow the approved path: fetch every ref and every LFS object, then push
+    # the full mirror to the destination repository.
+    _print_warning "Fetching from ${src_url} into ${dst_url}..."
 
-  # Create a new repository without a working tree on the current machine.
-  cd -- "${workdir}" && git init --bare -- "${workdir}"
+    # Create a bare working area under the temporary directory.
+    cd -- "${workdir}" && command git init --bare -- "${workdir}"
 
-  # Set the remote server to download all components of the source repository.
-  git config remote.origin.url "${src_url}"
+    # Point `origin` at the source repository that will be mirrored.
+    command git config remote.origin.url "${src_url}"
 
-  git config --add remote.origin.fetch '+refs/heads/*:refs/heads/*'
-  git config --add remote.origin.fetch '+refs/notes/*:refs/notes/*'
-  git config --add remote.origin.fetch '+refs/tags/*:refs/tags/*'
+    command git config --add remote.origin.fetch '+refs/heads/*:refs/heads/*'
+    command git config --add remote.origin.fetch '+refs/notes/*:refs/notes/*'
+    command git config --add remote.origin.fetch '+refs/tags/*:refs/tags/*'
 
-  # Mark the current repository as a mirror.
-  git config remote.origin.mirror true
+    # Mark the temporary repository as a mirror so `git push --mirror` exports
+    # every tracked ref.
+    command git config remote.origin.mirror true
 
-  # Fetch all registered remotes along with their branches.
-  git fetch --all
+    # Download every configured ref from the source repository.
+    command git fetch --all
 
-  # Pull all large objects stored in the remote repository.
-  # See information: https://github.com/git-lfs/git-lfs/issues/1338
-  git-lfs fetch --all
+    # Pull every Git LFS object referenced by the mirrored refs.
+    # See information: https://github.com/git-lfs/git-lfs/issues/1338
+    command git-lfs fetch --all
 
-  _print_warning "All components were saved in ${workdir}. Pushing into ${dst_url}..."
+    _print_warning "All components were saved in ${workdir}. Pushing into ${dst_url}..."
 
-  # Push this converted repository to the remote server.
-  git push --mirror -- "${dst_url}"
-  git-lfs push --all -- "${dst_url}"
+    # Push both regular Git refs and Git LFS objects to the destination.
+    command git push --mirror -- "${dst_url}"
+    command git-lfs push --all -- "${dst_url}"
 
-  cd -  # go back to the last directory
-
-  _print_success 'Done!'
-else
-  _print_error 'Stop this program runtime on the current machine.'
-  # Stop this program runtime and return the exit status code.
-  exit 1
-fi
+    _print_success 'Done!'
+    ;;
+  *)
+    # Exit quietly on the explicit cancel path without touching either
+    # repository.
+    _print_error 'Cancelled.'
+    exit 1
+    ;;
+esac
