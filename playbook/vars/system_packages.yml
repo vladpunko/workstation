@@ -50,6 +50,7 @@ required_homebrew_packages:
   - lynis
   - makeself
   - mc
+  - mosh
   - ncdu
   - nmap
   - openssh
