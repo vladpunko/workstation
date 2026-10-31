@@ -1,8 +1,24 @@
 ---
+# Build reviewed revisions without `sudo` to limit the privileges of downloaded code.
 required_user_programs:
-  - https://raw.githubusercontent.com/vladpunko/detach-process/master/install.sh
-  - https://raw.githubusercontent.com/vladpunko/notebook-environments/master/install.sh
+  - name: detach-process
+    repo: https://github.com/vladpunko/detach-process.git
+    revision: d84853268c42922f339d7c45413cf88be590a164
+    build: true
+    files:
+      - src: build/detach
+        name: detach
 
+  - name: notebook-environments
+    repo: https://github.com/vladpunko/notebook-environments.git
+    revision: 9082a63ffc98b073f6ea21289e2b94b07873d0d8
+    files:
+      - src: n.sh
+        name: n
+      - src: notebook_environments.py
+        name: notebook-environments
+
+# Place local helpers in `~/.local/bin` to make them available in the shell.
 required_user_scripts:
   - scripts/gitmirror
   - scripts/sshkey
