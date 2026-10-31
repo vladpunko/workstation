@@ -1,3 +1,12 @@
 ---
+# Use the user's desktop session so services inherit the correct home directory and permissions.
 required_user_services:
-  - services/org.jupyter.service.plist
+  - src: services/org.jupyter.service.plist
+
+    # Confirm Jupyter accepts connections before completing setup.
+    health_url: http://127.0.0.1:8050/login
+
+    # Keep these settings with the service so changes trigger a reload.
+    configuration:
+      - src: dotfiles/dot_jupyter_server_config.py
+        dest: "{{ user_home }}/.jupyter/jupyter_server_config.py"
