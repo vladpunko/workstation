@@ -1,15 +1,23 @@
 ---
+# Install missing extensions and leave existing installations alone.
 required_vscode_extensions:
+  # Container tools.
   - docker.docker
   - ms-azuretools.vscode-containers
   - ms-azuretools.vscode-docker
+
+  # Python editing and debugging.
   - ms-python.debugpy
   - ms-python.python
   - ms-python.vscode-pylance
   - ms-python.vscode-python-envs
+
+  # Remote workspaces and SSH connections.
   - ms-vscode-remote.remote-containers
   - ms-vscode-remote.remote-ssh
   - ms-vscode-remote.remote-ssh-edit
+
+  # Native development tools.
   - ms-vscode.cmake-tools
   - ms-vscode.cpptools
   - ms-vscode.remote-explorer
