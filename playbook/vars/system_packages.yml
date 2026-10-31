@@ -1,4 +1,5 @@
 ---
+# Desktop applications and fonts managed by Homebrew.
 required_homebrew_casks:
   - font-jetbrains-mono # as a highly readable typeface for programming
   # ---
@@ -22,6 +23,7 @@ required_homebrew_casks:
   - visual-studio-code
   - zotero
 
+# Command-line tools and development libraries.
 required_homebrew_packages:
   - "tcl-tk@8" # python dependency
   - aspell
