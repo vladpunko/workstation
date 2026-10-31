@@ -1,7 +1,22 @@
-#!/usr/bin/env sh
+#!/bin/bash
 
 set -o errexit
 set -o nounset
+
+# Avoid changing settings on machines this configuration was not designed for.
+if [[ "$(uname -s)" != Darwin || "$(uname -m)" != arm64 ]]
+then
+  printf 'Run this script only on a MacBook with an Apple M-series chip.\n' >&2
+  exit 1
+fi
+
+# Keep user preferences in your account instead of writing them to the root account.
+if [[ "${EUID}" -eq 0 ]]
+then
+  printf 'Running as root would apply these preferences to the root account.\n' >&2
+  printf 'Run this script from your regular macOS account.\n' >&2
+  exit 1
+fi
 
 # Keep the workstation hostname fixed at `moon`.
 host_name='moon'
