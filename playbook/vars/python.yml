@@ -5,8 +5,14 @@ miniconda_version: 25.5.1-1
 # See information: https://repo.anaconda.com/miniconda
 miniconda_python_version: py313
 
+# Download the installer for Apple Silicon Macs.
+miniconda_installer_url: >-
+  https://repo.anaconda.com/miniconda/Miniconda3-{{ miniconda_python_version }}_{{ miniconda_version }}-MacOSX-arm64.sh
+
+# Verify the downloaded Apple Silicon installer before running it.
 miniconda_installer_checksum: sha256:2ec6f7981770b3396a9ab426e07ac8ef5b12b4393aa2e4bcc984376fe3aa327e
 
+# Install these tools in the Miniconda base environment.
 required_python_packages:
   - "jupyter>=1.1.0"
   - "jupyterlab>=4.4.0"
@@ -16,3 +22,6 @@ required_python_packages:
   - twine
   - virtualenv
   - virtualenvwrapper
+
+# Keep `pyenv` on a reviewed revision when provisioning the workstation.
+pyenv_revision: 6b38999a6051714adf5f3c36d6452c4b67e4fffc
