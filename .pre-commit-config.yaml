@@ -2,9 +2,18 @@
 repos:
   # Set the list of basic git hooks to find and fix common problems in the current working tree.
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: f71fa2c1f9cf5cb705f73dffe4b21f7c61470ba9
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c
     hooks:
       - id: check-executables-have-shebangs
       - id: check-yaml
       - id: end-of-file-fixer
       - id: trailing-whitespace
+
+  # Catch playbook mistakes before provisioning the workstation.
+  - repo: https://github.com/ansible/ansible-lint
+    rev: 9bce2bfb8f4a984e6b13767bc0d6bf0a49492164
+    hooks:
+      - id: ansible-lint
+        language_version: python3.13
+        additional_dependencies:
+          - ansible

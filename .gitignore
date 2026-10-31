@@ -1,5 +1,7 @@
-.DS_Store
 __pycache__/
-*.py[cod]
+.ansible/
+.cache/
+.DS_Store
 .venv/
+*.py[cod]
 playbook/.venv/
