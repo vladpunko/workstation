@@ -3,18 +3,68 @@
   hosts: localhost
   gather_facts: true
 
+  environment:
+    # Make Homebrew tools available before installing the user's shell settings.
+    PATH: "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:{{ lookup('ansible.builtin.env', 'PATH') }}"
+    HOMEBREW_NO_AUTO_UPDATE: "1"
+    HOMEBREW_NO_ANALYTICS: "1"
+
+  vars_files:
+    - vars/system_packages.yml
+    - vars/python.yml
+    - vars/dotfiles.yml
+    - vars/vscode_extensions.yml
+    - vars/user_programs.yml
+    - vars/user_services.yml
+
+  pre_tasks:
+    - name: Check the workstation platform
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.system == "Darwin"
+          - ansible_facts.architecture == "arm64"
+        fail_msg: >-
+          This setup supports Apple Silicon Macs.
+          Open a native Terminal session and run the playbook there.
+        quiet: true
+      tags: always
+
+    - name: Check the invoking user
+      ansible.builtin.assert:
+        that: ansible_facts.user_uid != 0
+        fail_msg: >-
+          Run this playbook without `sudo` from your regular macOS account.
+          Application installers will ask for your login password when needed.
+        quiet: true
+      tags: always
+
+    - name: Check the Homebrew installation
+      ansible.builtin.stat:
+        path: /opt/homebrew/bin/brew
+      register: homebrew_executable
+      tags: always
+
+    - name: Require Homebrew before provisioning
+      ansible.builtin.assert:
+        that: homebrew_executable.stat.exists
+        fail_msg: >-
+          Homebrew is missing. Follow the preparation steps in `README.md`, then
+          run the playbook again.
+        quiet: true
+      tags: always
+
   tasks:
     - name: Include system package tasks
-      ansible.builtin.include_tasks: tasks/system_packages.yml
+      ansible.builtin.import_tasks: tasks/system_packages.yml
 
     - name: Include Python tasks
-      ansible.builtin.include_tasks: tasks/python.yml
+      ansible.builtin.import_tasks: tasks/python.yml
 
     - name: Include workspace tasks
-      ansible.builtin.include_tasks: tasks/user_workspace.yml
+      ansible.builtin.import_tasks: tasks/user_workspace.yml
 
     - name: Include user program tasks
-      ansible.builtin.include_tasks: tasks/user_programs.yml
+      ansible.builtin.import_tasks: tasks/user_programs.yml
 
     - name: Include user service tasks
-      ansible.builtin.include_tasks: tasks/user_services.yml
+      ansible.builtin.import_tasks: tasks/user_services.yml
