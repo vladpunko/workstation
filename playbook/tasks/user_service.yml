@@ -1,0 +1,286 @@
+---
+- name: Configure the user service
+  vars:
+    service_path: "{{ services_location }}/{{ service.src | basename }}"
+    service_target: "{{ services_domain }}/{{ service_label.stdout }}"
+    service_log_directory: "{{ user_home }}/Library/Logs"
+
+    service_definition:
+      src: "{{ service.src }}"
+      dest: "{{ service_path }}"
+    # Reload the service when its application settings change as well.
+    service_files: "{{ [service_definition] + (service.configuration | default([])) }}"
+
+  module_defaults:
+    ansible.builtin.file:
+      owner: "{{ user }}"
+      group: "{{ group }}"
+    ansible.builtin.copy:
+      owner: "{{ user }}"
+      group: "{{ group }}"
+      follow: false # replace configuration links without modifying their targets
+
+  block:
+    - name: Read the label from the new service definition
+      # Launch agents are addressed by their label, not by the plist filename.
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/plutil
+          - -extract
+          - Label
+          - raw
+          - -expect
+          - string
+          - "{{ playbook_dir }}/files/{{ service.src }}"
+      register: service_label
+      changed_when: false
+      check_mode: false # the preview needs the actual label to inspect the service
+
+    # Copying to a directory would silently change the destination filename.
+    # Paths can be checked directly because this playbook runs on the local workstation.
+    - name: Check that the service files can be installed
+      ansible.builtin.assert:
+        that: service_file.dest is not exists or service_file.dest is file
+        fail_msg: >-
+          The service needs `{{ service_file.dest }}` to be a file.
+          Move the existing item aside and run this playbook again.
+        quiet: true
+      loop: "{{ service_files }}"
+      loop_control:
+        loop_var: service_file
+        label: "{{ service_file.dest }}"
+
+    # A renamed service must also be unloaded under its previous label.
+    - name: Read the label from the installed service definition
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/plutil
+          - -extract
+          - Label
+          - raw
+          - -expect
+          - string
+          - "{{ service_path }}"
+      register: previous_service_label
+      changed_when: false
+      check_mode: false
+      when: service_path is file
+
+    # An empty label would make `bootout` target the entire desktop session.
+    - name: Check that each label identifies a single service
+      vars:
+        service_labels:
+          - "{{ service_label.stdout }}"
+          - "{{ previous_service_label.stdout | default(service_label.stdout) }}"
+      ansible.builtin.assert:
+        that:
+          - label | length > 0
+          - "'/' not in label"
+        fail_msg: >-
+          The `Label` value must not be empty or contain slashes.
+          Correct it in the new or installed service definition, then run this playbook again.
+        quiet: true
+      # Validate both labels when a rename changes only capitalization.
+      loop: "{{ service_labels | unique(case_sensitive=true) }}"
+      loop_control:
+        loop_var: label
+
+    # A service may not be loaded during initial setup, so exit code `113` is expected.
+    - name: Check whether the service is loaded
+      ansible.builtin.command:
+        argv:
+          - /bin/launchctl
+          - print
+          - "{{ service_target }}"
+      register: service_status
+      changed_when: false
+      failed_when: service_status.rc not in [0, 113]
+      check_mode: false
+
+    - name: Check whether the previous service label is still loaded
+      ansible.builtin.command:
+        argv:
+          - /bin/launchctl
+          - print
+          - "{{ services_domain }}/{{ previous_service_label.stdout }}"
+      register: previous_service_status
+      changed_when: false
+      failed_when: previous_service_status.rc not in [0, 113]
+      check_mode: false
+      when:
+        - previous_service_label.stdout is defined
+        - previous_service_label.stdout != service_label.stdout
+
+    # Existing directories may have permissions needed by other applications.
+    - name: Create the directories for the service files
+      ansible.builtin.file:
+        path: "{{ service_file.dest | dirname }}"
+        state: directory
+        mode: "0700"
+      loop: "{{ service_files }}"
+      loop_control:
+        loop_var: service_file
+        label: "{{ service_file.dest | dirname }}"
+      when: (service_file.dest | dirname) is not directory
+
+    - name: Create the service log directory
+      ansible.builtin.file:
+        path: "{{ service_log_directory }}"
+        state: directory
+        mode: "0700"
+      when: service_log_directory is not directory
+
+    # Keep the installed files unchanged until unloading succeeds, so retries still see pending changes.
+    - name: Compare the service definition and configuration
+      ansible.builtin.copy:
+        src: "{{ service_file.src }}"
+        dest: "{{ service_file.dest }}"
+        mode: "0600"
+      loop: "{{ service_files }}"
+      loop_control:
+        loop_var: service_file
+        label: "{{ service_file.dest }}"
+      check_mode: true
+      diff: false # service settings may contain credentials that should stay out of the preview
+      register: service_changes
+
+    # Detect directory permission errors before stopping a working service.
+    - name: Check permissions for the service file directories
+      ansible.builtin.stat:
+        path: "{{ service_file.dest | dirname }}"
+        follow: true
+      loop: "{{ service_files }}"
+      loop_control:
+        loop_var: service_file
+        label: "{{ service_file.dest | dirname }}"
+      register: service_directory_access
+
+    # A preview cannot check permissions for directories that do not exist yet.
+    - name: Require write access to the service file directories
+      ansible.builtin.assert:
+        that: directory.stat.writeable
+        fail_msg: >-
+          The service files cannot be updated because `{{ directory.service_file.dest | dirname }}` is not writable.
+          Restore write access for your account, then run this playbook again.
+        quiet: true
+      loop: "{{ service_directory_access.results }}"
+      loop_control:
+        loop_var: directory
+        label: "{{ directory.service_file.dest | dirname }}"
+      when:
+        - service_changes.changed
+        - directory.stat.exists
+
+    # A missing service must be loaded even when its files are already installed.
+    - name: Check whether the service needs to be reloaded or started
+      ansible.builtin.set_fact:
+        service_needs_reload: "{{ service_changes.changed or service_status.rc != 0 }}"
+        service_is_running: "{{ 'state = running' in service_status.stdout }}"
+
+    # A running service can still be disabled for the next login.
+    - name: Check whether the service is disabled
+      vars:
+        # Treat punctuation literally so the lookup cannot match another service.
+        disabled_service_entry: >-
+          "{{ service_label.stdout | regex_escape }}" => (disabled|true)
+      ansible.builtin.set_fact:
+        service_is_disabled: "{{ disabled_services.stdout is search(disabled_service_entry) }}"
+
+    - name: Show the planned service changes
+      ansible.builtin.debug:
+        msg: "The service `{{ service_label.stdout }}` will be configured and started."
+      changed_when: true # include pending service actions in the preview summary
+      when:
+        - ansible_check_mode
+        - service_needs_reload or not service_is_running or service_is_disabled
+
+    - name: Apply the service changes
+      when: not ansible_check_mode
+      block:
+        # Disabled services must be enabled before they can be loaded again.
+        - name: Enable the service in the desktop session
+          ansible.builtin.command:
+            argv:
+              - /bin/launchctl
+              - enable
+              - "{{ service_target }}"
+          changed_when: true
+          when: service_is_disabled
+
+        - name: Unload the service registered under the previous label
+          ansible.builtin.command:
+            argv:
+              - /bin/launchctl
+              - bootout
+              - "{{ services_domain }}/{{ previous_service_label.stdout }}"
+          changed_when: true
+          when:
+            - service_needs_reload
+            - previous_service_status is not skipped
+            - previous_service_status.rc == 0
+
+        - name: Unload the service before replacing its configuration
+          ansible.builtin.command:
+            argv:
+              - /bin/launchctl
+              - bootout
+              - "{{ service_target }}"
+          changed_when: true
+          when:
+            - service_needs_reload
+            - service_status.rc == 0
+
+        - name: Copy the service definition and configuration
+          ansible.builtin.copy:
+            src: "{{ service_file.src }}"
+            dest: "{{ service_file.dest }}"
+            backup: true
+            mode: "0600"
+          diff: false # keep service credentials out of the installation log
+          loop: "{{ service_files }}"
+          loop_control:
+            loop_var: service_file
+            label: "{{ service_file.dest }}"
+          when: service_needs_reload
+
+    - name: Start the service and check that it is ready
+      when: not ansible_check_mode
+      block:
+        - name: Load the service into the desktop session
+          ansible.builtin.command:
+            argv:
+              - /bin/launchctl
+              - bootstrap
+              - "{{ services_domain }}"
+              - "{{ service_path }}"
+          changed_when: true
+          when: service_needs_reload
+
+        # Definitions can load without starting a process, so request a start explicitly.
+        - name: Start the service if it is stopped
+          ansible.builtin.command:
+            argv:
+              - /bin/launchctl
+              - kickstart
+              - "{{ service_target }}"
+          changed_when: true
+          when: service_needs_reload or not service_is_running
+
+        - name: Wait for the service to respond
+          ansible.builtin.uri:
+            url: "{{ service.health_url }}"
+            use_proxy: false # contact the local service directly even when a proxy is configured
+            status_code: 200
+            timeout: 5 # local services should respond promptly once they have started
+          register: service_health
+          until: service_health is succeeded
+          retries: 15 # allow the application time to finish starting before reporting a failure
+          delay: 2
+          when: service.health_url is defined
+      rescue:
+        - name: Explain how to resolve the startup failure
+          ansible.builtin.fail:
+            msg: >-
+              The service `{{ service_label.stdout }}` did not become ready.
+              Check `{{ service_path }}` and the logs in `{{ service_log_directory }}` for startup
+              errors, then run this playbook again.
