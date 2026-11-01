@@ -1,68 +1,38 @@
 ---
-- name: Load user service variables
-  ansible.builtin.include_vars: vars/user_services.yml
-
 - name: Install and start user services
-  when: ansible_distribution == "MacOSX"
+  # Services and their configuration belong to the user who runs them.
+  become: true
+  become_user: "{{ user }}"
   tags:
     - services
     - services-workstation
+  environment:
+    HOME: "{{ user_home }}"
+  when: required_user_services | length > 0
   block:
-    - name: Define the LaunchAgents directory
-      ansible.builtin.set_fact:
-        services_location: ~/Library/LaunchAgents
-
-    - name: Create the LaunchAgents directory
-      ansible.builtin.file:
-        path: "{{ services_location }}"
-        state: directory
-        recurse: false
-        owner: "{{ user }}"
-        group: "{{ group }}"
-        mode: "0755"
-
-    - name: Install the required user services
-      ansible.builtin.copy:
-        src: "{{ item }}"
-        dest: "{{ services_location }}"
-        owner: "{{ user }}"
-        group: "{{ group }}"
-        mode: "0644"
-      loop_control:
-        label: "{{ item | basename }}"
-      with_items: "{{ required_user_services }}"
-
-    - name: Gather labels for each launch agent
-      # `launchctl list` works with service labels, so read the label from each
-      # plist first.
-      ansible.builtin.command: "/usr/libexec/PlistBuddy -c 'Print Label' {{ services_location }}/{{ item | basename }}"
-      register: user_service_labels
+    # User services need a desktop session before they can be loaded.
+    - name: Check the desktop session and its disabled services
+      ansible.builtin.command:
+        argv:
+          - /bin/launchctl
+          - print-disabled
+          - "{{ services_domain }}"
+      register: disabled_services
       changed_when: false
-      loop_control:
-        label: "{{ item | basename }}"
-      with_items: "{{ required_user_services }}"
+      failed_when: false
+      check_mode: false
 
-    - name: Check whether each launch agent is already running
-      ansible.builtin.command: "launchctl list {{ user_service_labels.results[service_index].stdout }}"
-      register: user_service_statuses
-      changed_when: false
-      failed_when: false # do not fail when `launchctl list` reports a missing agent
-      loop_control:
-        index_var: service_index
-        label: "{{ item | basename }}"
-      with_items: "{{ required_user_services }}"
+    - name: Require a desktop session for user services
+      ansible.builtin.assert:
+        that: disabled_services.rc == 0
+        fail_msg: >-
+          User services need an active macOS desktop session.
+          Sign in to your account and run this playbook from a terminal window.
+        quiet: true
 
-    - name: Load and start the missing launch agents
-      ansible.builtin.shell: |
-        launchctl load -w {{ services_location }}/{{ item | basename }}
-
-        # Trigger the service immediately after `launchctl load -w`.
-        launchctl start {{ user_service_labels.results[service_index].stdout }}
-      register: service_bootstrap_status
-      changed_when: service_bootstrap_status.rc == 0
-      failed_when: service_bootstrap_status.rc > 0
-      when: user_service_statuses.results[service_index].rc != 0
+    - name: Configure each user service
+      ansible.builtin.include_tasks: user_service.yml
+      loop: "{{ required_user_services }}"
       loop_control:
-        index_var: service_index
-        label: "{{ item | basename }}"
-      with_items: "{{ required_user_services }}"
+        loop_var: service
+        label: "{{ service.src | basename }}"
