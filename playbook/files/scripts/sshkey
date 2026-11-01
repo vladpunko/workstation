@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/bash
 
 # Created by: Vladislav Punko <iam.vlad.punko@gmail.com>
 # Created date: 2025-07-25
@@ -9,48 +9,50 @@ set -o nounset
 # Restrict the default permissions so newly created key files stay private.
 umask 077
 
-path="${HOME}/.ssh/id_ed25519"
-public_path="${path}.pub"
+key_directory="${HOME}/.ssh"
+private_key="${key_directory}/id_ed25519"
+public_key="${private_key}.pub"
 
-# Write through a temporary file so the public key update stays atomic.
-temp_path="${public_path}.tmp"
+# Keep other local accounts from accessing the key directory.
+command mkdir -p -- "${key_directory}"
+command chmod 0700 "${key_directory}"
 
-# Create `~/.ssh` up front so both key creation and key recovery have a stable
-# target directory on a fresh machine.
-command mkdir -p -- "${HOME}/.ssh"
-
-# Use `python3` for the file-state check so the three cases stay explicit:
-# create a new key pair, rebuild only the missing public key, or just print
-# the existing public key.
+# Reuse the existing private key when only its public key needs restoring.
 action="$(
-  command python3 -u - "${path}" "${public_path}" <<'EOF'
-from pathlib import Path
+  command python3 - "${private_key}" "${public_key}" <<'PYTHON'
 import sys
+from pathlib import Path
 
-private_key_path = Path(sys.argv[1])
-public_key_path = Path(sys.argv[2])
+private_key_path, public_key_path = sys.argv[1:]
 
-if not private_key_path.is_file():
-    print("create")
-elif not public_key_path.is_file():
-    print("restore-public")
+if not Path(private_key_path).is_file():
+    action = "create"
+elif not Path(public_key_path).is_file():
+    action = "restore-public"
 else:
-    print("print")
-EOF
+    action = "print"
+
+print(action)
+PYTHON
 )"
 
-case "${action}" in
-  create)
-    # Cover the first-run case where no user SSH key exists yet.
-    command ssh-keygen -t ed25519 -C "$(command hostname)" -f "${path}" -q -N ''
-    ;;
-  restore-public)
-    # Cover the recovery case where the private key exists but the public key
-    # file is missing.
-    command ssh-keygen -y -f "${path}" > "${temp_path}"
-    command mv -f -- "${temp_path}" "${public_path}"
-    ;;
-esac
+if [[ "${action}" == create ]]
+then
+  command ssh-keygen -t ed25519 -C "$(command hostname)" -f "${private_key}" -q -N ''
+elif [[ "${action}" == restore-public ]]
+then
+  # Replace the public key only after it has been recovered successfully.
+  temporary_public_key="$(command mktemp "${public_key}.XXXXXX")"
+  trap 'command rm -f -- "${temporary_public_key}"' EXIT
 
-# Always print the current public key so it can be copied immediately.
-command cat "${public_path}"
+  # Exit on signals so the cleanup trap also runs when recovery is interrupted.
+  trap 'exit 129' HUP
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+
+  command ssh-keygen -y -f "${private_key}" > "${temporary_public_key}"
+  command mv -f -- "${temporary_public_key}" "${public_key}"
+fi
+
+# Print the public key so it can be copied directly.
+command cat "${public_key}"
