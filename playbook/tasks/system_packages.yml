@@ -1,44 +1,101 @@
 ---
-- name: Load system package variables
-  ansible.builtin.include_vars: vars/system_packages.yml
-
-- name: Install system dependencies and updates
-  when: ansible_distribution == "MacOSX"
+- name: Install applications and command-line tools
+  # Homebrew must run as the user who owns its installation.
+  become: true
+  become_user: "{{ user }}"
   tags:
     - packages
     - packages-workstation
+  environment:
+    HOME: "{{ user_home }}"
   block:
-    - name: Warm the sudo timestamp for Homebrew-managed system installs
-      become: true
-      become_method: ansible.builtin.sudo
-      ansible.builtin.command: /usr/bin/true
-      changed_when: false
+    - name: Install desktop applications
+      vars:
+        provided_password: "{{ ansible_become_password | default('', true) }}"
+      when: required_homebrew_casks | length > 0
+      block:
+        # Avoid asking for a password when all applications are already installed.
+        - name: Check whether any applications need installing
+          community.general.homebrew_cask:
+            name: "{{ required_homebrew_casks }}"
+            path: /opt/homebrew/bin
+            state: present
+            accept_external_apps: true
+          check_mode: true
+          register: application_changes
 
-    - name: Install the required applications
-      environment:
-        HOMEBREW_NO_AUTO_UPDATE: "1"
-      community.general.homebrew_cask:
-        install_options: force # allow casks that overwrite existing apps
-        name: "{{ required_homebrew_casks }}"
-        state: present
+        - name: Ask for the login password for application installers
+          # Ansible runs Homebrew without a terminal, so installers cannot prompt for a password.
+          ansible.builtin.pause:
+            prompt: Enter your macOS login password so Homebrew can run application installers
+            echo: false
+          register: password_prompt
+          no_log: true
+          when:
+            - application_changes.changed
+            - not ansible_check_mode
+            - provided_password | length == 0
 
-    - name: Install essential system packages and development tools
-      environment:
-        HOMEBREW_NO_AUTO_UPDATE: "1"
+        - name: Check that a login password was entered
+          ansible.builtin.assert:
+            that: password_prompt.user_input | default('') | length > 0
+            fail_msg: >-
+              No login password was entered. Run this playbook in an interactive terminal
+              and enter your macOS login password when prompted.
+            quiet: true
+          when: password_prompt is not skipped
+
+        - name: Install the required applications
+          community.general.homebrew_cask:
+            name: "{{ required_homebrew_casks }}"
+            path: /opt/homebrew/bin
+            state: present
+            accept_external_apps: true
+            sudo_password: "{{ provided_password or password_prompt.user_input | default('') }}"
+
+    - name: Install command-line tools and libraries
       community.general.homebrew:
         name: "{{ required_homebrew_packages }}"
+        path: /opt/homebrew/bin
         state: present
-  always:
-    - name: Get the Homebrew cache directory path
-      environment:
-        # Include both Homebrew prefixes in `PATH` so the playbook works on
-        # Intel and Apple Silicon Macs.
-        PATH: "/opt/homebrew/bin:/usr/local/bin:{{ lookup('ansible.builtin.env', 'PATH') }}"
-      ansible.builtin.command: brew --cache
-      register: homebrew_cache_directory
-      changed_when: false
+      when: required_homebrew_packages | length > 0
 
-    - name: Remove all contents from the Homebrew cache directory
-      ansible.builtin.file:
-        path: "{{ homebrew_cache_directory.stdout }}"
-        state: absent
+    - name: Configure the virus scanner
+      when: "'clamav' in required_homebrew_packages"
+      block:
+        # A directory destination would make `copy` write under a different filename.
+        - name: Check the virus scanner's configuration path
+          ansible.builtin.stat:
+            path: /opt/homebrew/etc/clamav/freshclam.conf
+            follow: true
+            get_checksum: false
+          register: clamav_configuration
+
+        - name: Check for conflicts at the virus scanner's configuration path
+          ansible.builtin.assert:
+            that: >-
+              not clamav_configuration.stat.exists
+              or (clamav_configuration.stat.isreg | default(false))
+            fail_msg: >-
+              The virus scanner cannot use `/opt/homebrew/etc/clamav/freshclam.conf` as a configuration file.
+              Move it aside and run this playbook again.
+            quiet: true
+
+        - name: Create the virus scanner's configuration directory
+          ansible.builtin.file:
+            path: /opt/homebrew/etc/clamav
+            state: directory
+            mode: "0755"
+
+        # Homebrew's sample configuration does not enable virus definition updates.
+        - name: Configure virus definition updates
+          ansible.builtin.copy:
+            dest: /opt/homebrew/etc/clamav/freshclam.conf
+            content: |
+              DatabaseMirror database.clamav.net
+              DNSDatabaseInfo current.cvd.clamav.net
+              DatabaseDirectory /opt/homebrew/var/lib/clamav
+            # Preserve any configuration the user has already customized.
+            force: false
+            follow: true
+            mode: "0644"
