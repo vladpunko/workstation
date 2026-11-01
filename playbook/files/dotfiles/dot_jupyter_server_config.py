@@ -16,8 +16,8 @@ c.ServerApp.open_browser = False
 # jupyter server on the current machine.
 # The repository stores only the password hash, not the plaintext password.
 c.ServerApp.password = (
-    "argon2:$argon2id$v=19$m=10240,t=10,p=8$sFMvtDQ1KbSg9XBQvcOknw$"
-    "LAQU853X3Yf5Yptkx8lIlqJiV1VhkKvMDVA8pdM4pnk"
+    "argon2:$argon2id$v=19$m=10240,t=10,p=8$DKvYAtQDtMN0KDtjkzh7Rg$"
+    "Y59j3xb9hmPgy1xNlHHaJmINbM3IqyvoA5rfZvb743Y"
 )
 
 # Generate a random authorization token string.
