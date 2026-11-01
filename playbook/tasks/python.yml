@@ -1,62 +1,117 @@
 ---
-- name: Load Python variables
-  ansible.builtin.include_vars: vars/python.yml
-
-- name: Install Python tooling and packages
-  when: ansible_distribution == "MacOSX"
+- name: Install Python tools and packages
+  # Keep personal tools writable without elevated permissions.
+  become: true
+  become_user: "{{ user }}"
   tags:
     - python
     - python-workstation
+  environment:
+    HOME: "{{ user_home }}"
+    # Avoid importing packages from another Python environment.
+    PYTHONHOME: ""
+    PYTHONPATH: ""
+    PYTHONNOUSERSITE: "1"
+
+    # Packages must stay in Miniconda even when another environment is active.
+    PIP_CONFIG_FILE: /dev/null
+    PIP_DRY_RUN: "false" # leave preview mode to Ansible
+    # Both aliases can disable dependencies, so reset them together.
+    PIP_NO_DEPS: "false"
+    PIP_NO_DEPENDENCIES: "false"
+    PIP_REQUIRE_VIRTUALENV: "false"
+    PIP_USER: "false"
+    PIP_TARGET: ""
+    PIP_PREFIX: ""
+    PIP_ROOT: ""
+    PIP_PYTHON: ""
   block:
-    - name: Define local Python paths
-      ansible.builtin.set_fact:
-        # Install Miniconda under `~/.miniconda`.
-        miniconda_location: ~/.miniconda
-
-        # Keep `pyenv` versions and shims under `~/.pyenv`.
-        pyenv_location: ~/.pyenv
-
-    - name: Check whether Miniconda is already installed
-      ansible.builtin.stat:
-        path: "{{ miniconda_location }}/bin/conda"
-      register: miniconda_conda_executable
+    # Missing tools are expected on a fresh system.
+    # Previews still need these checks to determine whether installation is required.
+    - name: Check whether Miniconda is available
+      ansible.builtin.command:
+        argv:
+          - "{{ miniconda_location }}/bin/conda"
+          - --version
+      register: miniconda
       changed_when: false
+      failed_when: false
+      check_mode: false
 
-    - name: Install Miniconda when it is missing
-      when: not miniconda_conda_executable.stat.exists
+    - name: Check whether `pip` is available in Miniconda
+      ansible.builtin.command:
+        argv:
+          - "{{ miniconda_location }}/bin/pip"
+          - --version
+      register: miniconda_pip
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Set up Miniconda if it is unavailable
+      vars:
+        miniconda_installer: "{{ user_home }}/.miniconda-installer.sh"
+      when: miniconda.rc != 0 or miniconda_pip.rc != 0
       block:
+        - name: Check the Miniconda directory
+          ansible.builtin.stat:
+            path: "{{ miniconda_location }}"
+            follow: false # broken symbolic links also block installation
+          register: miniconda_directory
+
+        # An existing directory may contain user environments that must be preserved.
+        - name: Stop if the Miniconda directory already exists
+          ansible.builtin.assert:
+            that: not miniconda_directory.stat.exists
+            fail_msg: >-
+              Miniconda or `pip` could not start from the existing installation.
+              Rename the directory at `{{ miniconda_location }}` and run the playbook again.
+            quiet: true
+
+        - name: Show the planned Miniconda installation
+          ansible.builtin.debug:
+            msg: Miniconda and the required Python packages will be installed.
+          changed_when: true # include the pending installation in the preview summary
+          when: ansible_check_mode
+
         - name: Download the Miniconda installer
           ansible.builtin.get_url:
-            url: "https://repo.anaconda.com/miniconda/Miniconda3-{{ miniconda_python_version }}_{{ miniconda_version }}-MacOSX-{{ ansible_architecture }}.sh"
+            url: "{{ miniconda_installer_url }}"
             checksum: "{{ miniconda_installer_checksum }}"
-            dest: "{{ lookup('pipe', 'mktemp') }}.sh"
-            timeout: 600 # `get_url` may need extra time for the installer download
+            dest: "{{ miniconda_installer }}"
+            timeout: 600 # allow the large installer to download on slower connections
             owner: "{{ user }}"
             group: "{{ group }}"
-            mode: "0755"
-          register: miniconda_installer
+            mode: "0600"
+          when: not ansible_check_mode
 
-        - name: Install Miniconda
-          ansible.builtin.command: "{{ miniconda_installer.dest }} -b -p {{ miniconda_location }}"
-          args:
-            creates: "{{ miniconda_location }}"
+        - name: Install Miniconda from the downloaded installer
+          ansible.builtin.command:
+            argv:
+              - /bin/bash
+              - "{{ miniconda_installer }}"
+              - -b
+              - -p
+              - "{{ miniconda_location }}"
+          changed_when: true
+          when: not ansible_check_mode
       always:
-        - name: Delete the downloaded installer
+        - name: Delete the downloaded Miniconda installer
           ansible.builtin.file:
-            path: "{{ miniconda_installer.dest }}"
+            path: "{{ miniconda_installer }}"
             state: absent
+          when: not ansible_check_mode
 
-    - name: Install pyenv
+    - name: Install `pyenv` to manage Python versions
       ansible.builtin.git:
-        repo: "https://github.com/pyenv/pyenv.git"
-        clone: true
-        version: master
+        repo: https://github.com/pyenv/pyenv.git
+        version: "{{ pyenv_revision }}"
         dest: "{{ pyenv_location }}"
 
+    # A preview can inspect packages only when Miniconda is already available.
     - name: Install the required Python packages
-      environment:
-        PIP_CONFIG_FILE: /dev/null
       ansible.builtin.pip:
         executable: "{{ miniconda_location }}/bin/pip"
         name: "{{ required_python_packages }}"
         state: present
+      when: not ansible_check_mode or (miniconda.rc == 0 and miniconda_pip.rc == 0)
