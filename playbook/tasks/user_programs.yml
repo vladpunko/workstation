@@ -1,60 +1,69 @@
 ---
-- name: Load user program variables
-  ansible.builtin.include_vars: vars/user_programs.yml
-
-- name: Install user programs and helper scripts
-  when: ansible_distribution == "MacOSX"
+- name: Install user programs
+  # Avoid running downloaded build scripts with administrator privileges.
+  become: true
+  become_user: "{{ user }}"
   tags:
     - programs
     - programs-workstation
+  vars:
+    script_destination: "{{ scripts_location }}/{{ script | basename }}"
+  environment:
+    HOME: "{{ user_home }}"
+  module_defaults:
+    ansible.builtin.file:
+      owner: "{{ user }}"
+      group: "{{ group }}"
+    ansible.builtin.copy:
+      owner: "{{ user }}"
+      group: "{{ group }}"
+      follow: false # replace managed links without modifying their targets
+  when: required_user_programs | length > 0 or required_user_scripts | length > 0
   block:
-    - name: Define the user script directory
-      ansible.builtin.set_fact:
-        scripts_location: ~/.local/bin
-
-    - name: Download the required installers
-      ansible.builtin.get_url:
-        url: "{{ item }}"
-        dest: "{{ lookup('pipe', 'mktemp') }}.sh"
-        owner: "{{ user }}"
-        group: "{{ group }}"
-        mode: "0755"
-      register: downloaded_programs
-      with_items: "{{ required_user_programs }}"
-
-    - name: Run the downloaded installers
-      become: true
-      become_method: ansible.builtin.sudo
-      ansible.builtin.command: "{{ item.dest }}"
-      changed_when: true
-      loop_control:
-        label: "{{ item.url }}"
-      with_items: "{{ downloaded_programs.results }}"
-
+    # Existing directories may have permissions needed by other applications.
     - name: Create the user script directory
       ansible.builtin.file:
         path: "{{ scripts_location }}"
         state: directory
-        recurse: false
-        owner: "{{ user }}"
-        group: "{{ group }}"
         mode: "0755"
+      when: scripts_location is not directory
+
+    - name: Create the program source directory
+      ansible.builtin.file:
+        path: "{{ sources_location }}"
+        state: directory
+        mode: "0700"
+      when:
+        - required_user_programs | length > 0
+        - sources_location is not directory
+
+    # A directory destination would make `copy` use a different filename.
+    - name: Check the destinations for the helper scripts
+      ansible.builtin.assert:
+        that: script_destination is not exists or script_destination is file
+        fail_msg: >-
+          The script needs `{{ script_destination }}` to be a file.
+          Move the existing item aside and run this playbook again.
+        quiet: true
+      loop: "{{ required_user_scripts }}"
+      loop_control:
+        loop_var: script
+        label: "{{ script | basename }}"
+
+    - name: Install each program from its reviewed revision
+      ansible.builtin.include_tasks: user_program.yml
+      loop: "{{ required_user_programs }}"
+      loop_control:
+        loop_var: program
+        label: "{{ program.name }}"
 
     - name: Install the helper scripts
       ansible.builtin.copy:
-        src: "{{ item }}"
-        dest: "{{ scripts_location }}"
-        owner: "{{ user }}"
-        group: "{{ group }}"
+        src: "{{ script }}"
+        dest: "{{ script_destination }}"
+        backup: true
         mode: "0755"
+      loop: "{{ required_user_scripts }}"
       loop_control:
-        label: "{{ item | basename }}"
-      with_items: "{{ required_user_scripts }}"
-  always:
-    - name: Delete the downloaded installers
-      ansible.builtin.file:
-        path: "{{ item.dest }}"
-        state: absent
-      loop_control:
-        label: "{{ item.url }}"
-      with_items: "{{ downloaded_programs.results }}"
+        loop_var: script
+        label: "{{ script | basename }}"
