@@ -70,7 +70,8 @@ export PAGER=less
 # Bind GnuPG to the current terminal so `pinentry` prompts appear in the active
 # session.
 # See information: https://stackoverflow.com/questions/39494631
-GPG_TTY="$(tty)"; export GPG_TTY
+GPG_TTY="$(tty)"
+export GPG_TTY
 
 # Set the default `fzf` layout and display behavior.
 export FZF_DEFAULT_OPTS='--height=50% --info=inline --layout=reverse'

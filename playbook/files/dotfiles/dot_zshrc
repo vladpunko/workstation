@@ -1,7 +1,4 @@
-if [[ -f /etc/zshrc ]]; then
-  # Load the main settings of the current operating system.
-  source /etc/zshrc
-fi
+# macOS loads `/etc/zshrc` before the user's settings.
 
 # Set a restrictive umask to ensure maximum security for data.
 umask 077
@@ -49,27 +46,32 @@ zle -N edit-command-line
 bindkey '\C-x\C-e' edit-command-line
 
 # Load the Miniconda shell hooks when `~/.miniconda` is installed.
-if [[ -f "${HOME}/.miniconda/etc/profile.d/conda.sh" ]]; then
+if [[ -f "${HOME}/.miniconda/etc/profile.d/conda.sh" ]]
+then
   source "${HOME}/.miniconda/etc/profile.d/conda.sh"
 fi
 
 # Initialize the `pyenv` shims without defining the shell helper function, so
 # the existing `pyenv` alias keeps working as before.
-if whence -p pyenv > /dev/null 2>&1; then
+if whence -p pyenv > /dev/null 2>&1
+then
   eval -- "$(command pyenv init --path)" 2> /dev/null
 fi
 
 # Load `virtualenvwrapper.sh` only when it is installed.
-if command -v virtualenvwrapper.sh > /dev/null 2>&1; then
+if command -v virtualenvwrapper.sh > /dev/null 2>&1
+then
   source -- "$(command -v virtualenvwrapper.sh)"
 fi
 
 # Load the `fzf` key bindings and completion hooks when available.
-if command -v fzf > /dev/null 2>&1; then
+if command -v fzf > /dev/null 2>&1
+then
   eval -- "$(command fzf --zsh)"
 fi
 
 # Enable `zoxide` when it is installed.
-if command -v zoxide > /dev/null 2>&1; then
+if command -v zoxide > /dev/null 2>&1
+then
   eval -- "$(command zoxide init zsh)"
 fi
