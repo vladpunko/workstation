@@ -10,7 +10,9 @@
       <string>/bin/sh</string>
       <string>-c</string>
       <!-- Start the main jupyter notebook server on the current operating system. -->
-      <string>exec "${HOME}/.miniconda/bin/jupyter-notebook"</string>
+      <string>
+        exec "${HOME}/.miniconda/bin/jupyter-notebook" >> "${HOME}/Library/Logs/jupyter.log" 2>&amp;1
+      </string>
     </array>
 
     <key>RunAtLoad</key>
