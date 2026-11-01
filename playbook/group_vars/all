@@ -1,7 +1,20 @@
 ---
-# Use the original invoking user when the playbook is launched through `sudo`.
-user: "{{ ansible_env.SUDO_USER | default(ansible_user_id, true) }}"
+# Use the same Python as Ansible so modules can access its installed dependencies.
+ansible_python_interpreter: "{{ ansible_playbook_python }}"
 
-# Resolve the primary group for the same user so copied files keep the correct
-# ownership.
-group: "{{ lookup('ansible.builtin.pipe', 'id -gn ' ~ (ansible_env.SUDO_USER | default(ansible_user_id, true) | quote)) }}"
+# Keep personal files and processes under the account running this playbook.
+user: "{{ ansible_facts.user_id }}"
+group: "{{ ansible_facts.user_gid }}"
+user_home: "{{ ansible_facts.user_dir }}"
+
+# Keep installed commands separate from their source checkouts.
+scripts_location: "{{ user_home }}/.local/bin"
+sources_location: "{{ user_home }}/.local/share/workstation/sources"
+
+# Keep Miniconda separate from `pyenv` so additional Python versions do not affect the main environment.
+miniconda_location: "{{ user_home }}/.miniconda"
+pyenv_location: "{{ user_home }}/.pyenv"
+
+# Use the desktop session so services start when the user signs in.
+services_location: "{{ user_home }}/Library/LaunchAgents"
+services_domain: "gui/{{ ansible_facts.user_uid }}"
