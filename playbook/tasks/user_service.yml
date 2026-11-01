@@ -257,14 +257,36 @@
           when: service_needs_reload
 
         # Definitions can load without starting a process, so request a start explicitly.
-        - name: Start the service if it is stopped
+        - name: Start the service and read its process ID
           ansible.builtin.command:
             argv:
               - /bin/launchctl
               - kickstart
+              - -p
               - "{{ service_target }}"
-          changed_when: true
-          when: service_needs_reload or not service_is_running
+          register: service_process
+          changed_when: service_needs_reload or not service_is_running
+
+        # A response from another process must not count as a successful service start.
+        - name: Wait for the service process to open its port
+          vars:
+            default_port: "{{ 443 if service.health_url.startswith('https://') else 80 }}"
+            service_port: "{{ service.health_url | urlsplit('port') or default_port }}"
+          ansible.builtin.command:
+            argv:
+              - /usr/sbin/lsof
+              - -nP
+              - -a # require the process and port filters to match together
+              - -p
+              - "{{ service_process.stdout }}"
+              - "-iTCP:{{ service_port }}"
+              - -sTCP:LISTEN
+          register: service_listener
+          changed_when: false
+          until: service_listener.rc == 0
+          retries: 15
+          delay: 2
+          when: service.health_url is defined
 
         - name: Wait for the service to respond
           ansible.builtin.uri:
@@ -277,6 +299,16 @@
           retries: 15 # allow the application time to finish starting before reporting a failure
           delay: 2
           when: service.health_url is defined
+
+        - name: Check that the service is still running
+          ansible.builtin.command:
+            argv:
+              - /bin/launchctl
+              - print
+              - "{{ service_target }}"
+          register: service_ready
+          changed_when: false
+          failed_when: service_ready.rc != 0 or 'state = running' not in service_ready.stdout
       rescue:
         - name: Explain how to resolve the startup failure
           ansible.builtin.fail:

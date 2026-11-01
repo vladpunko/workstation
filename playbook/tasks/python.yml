@@ -49,8 +49,6 @@
       check_mode: false
 
     - name: Set up Miniconda if it is unavailable
-      vars:
-        miniconda_installer: "{{ user_home }}/.miniconda-installer.sh"
       when: miniconda.rc != 0 or miniconda_pip.rc != 0
       block:
         - name: Check the Miniconda directory
@@ -74,33 +72,40 @@
           changed_when: true # include the pending installation in the preview summary
           when: ansible_check_mode
 
-        - name: Download the Miniconda installer
-          ansible.builtin.get_url:
-            url: "{{ miniconda_installer_url }}"
-            checksum: "{{ miniconda_installer_checksum }}"
-            dest: "{{ miniconda_installer }}"
-            timeout: 600 # allow the large installer to download on slower connections
-            owner: "{{ user }}"
-            group: "{{ group }}"
-            mode: "0600"
+        - name: Download and install Miniconda
           when: not ansible_check_mode
+          block:
+            # A unique file keeps downloads and cleanup away from existing user files.
+            - name: Create a temporary file for the Miniconda installer
+              ansible.builtin.tempfile:
+                state: file
+              register: miniconda_installer
 
-        - name: Install Miniconda from the downloaded installer
-          ansible.builtin.command:
-            argv:
-              - /bin/bash
-              - "{{ miniconda_installer }}"
-              - -b
-              - -p
-              - "{{ miniconda_location }}"
-          changed_when: true
-          when: not ansible_check_mode
-      always:
-        - name: Delete the downloaded Miniconda installer
-          ansible.builtin.file:
-            path: "{{ miniconda_installer }}"
-            state: absent
-          when: not ansible_check_mode
+            - name: Download the Miniconda installer
+              ansible.builtin.get_url:
+                url: "{{ miniconda_installer_url }}"
+                checksum: "{{ miniconda_installer_checksum }}"
+                dest: "{{ miniconda_installer.path }}"
+                timeout: 600 # allow the large installer to download on slower connections
+                owner: "{{ user }}"
+                group: "{{ group }}"
+                mode: "0600"
+
+            - name: Install Miniconda from the downloaded installer
+              ansible.builtin.command:
+                argv:
+                  - /bin/bash
+                  - "{{ miniconda_installer.path }}"
+                  - -b
+                  - -p
+                  - "{{ miniconda_location }}"
+              changed_when: true
+          always:
+            - name: Delete the downloaded Miniconda installer
+              ansible.builtin.file:
+                path: "{{ miniconda_installer.path }}"
+                state: absent
+              when: miniconda_installer.path is defined
 
     - name: Install `pyenv` to manage Python versions
       ansible.builtin.git:

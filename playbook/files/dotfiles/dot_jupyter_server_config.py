@@ -26,6 +26,9 @@ c.ServerApp.token = secrets.token_hex()
 # Set the main jupyter server port on the current machine.
 c.ServerApp.port = 8050
 
+# Keep the server on the port used by the service readiness check.
+c.ServerApp.port_retries = 0
+
 # Set the preferred system path to use for the working jupyter server on the
 # current machine.
 c.ServerApp.root_dir = os.path.join(os.path.expanduser("~"), "Documents")

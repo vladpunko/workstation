@@ -12,17 +12,24 @@
     - name: Install desktop applications
       vars:
         provided_password: "{{ ansible_become_password | default('', true) }}"
+
+        # Bundle versions identify manual installations so they do not trigger a password prompt.
+        applications_to_install: >-
+          {{ (homebrew_applications.stdout | from_json).casks
+             | rejectattr('installed')
+             | rejectattr('bundle_version')
+             | rejectattr('bundle_short_version')
+             | map(attribute='token')
+             | list }}
       when: required_homebrew_casks | length > 0
       block:
-        # Avoid asking for a password when all applications are already installed.
-        - name: Check whether any applications need installing
-          community.general.homebrew_cask:
-            name: "{{ required_homebrew_casks }}"
-            path: /opt/homebrew/bin
-            state: present
-            accept_external_apps: true
-          check_mode: true
-          register: application_changes
+        - name: Read the application installation details
+          ansible.builtin.command:
+            argv: >-
+              {{ ['/opt/homebrew/bin/brew', 'info', '--json=v2', '--cask'] + required_homebrew_casks }}
+          register: homebrew_applications
+          changed_when: false
+          check_mode: false
 
         - name: Ask for the login password for application installers
           # Ansible runs Homebrew without a terminal, so installers cannot prompt for a password.
@@ -32,7 +39,7 @@
           register: password_prompt
           no_log: true
           when:
-            - application_changes.changed
+            - applications_to_install | length > 0
             - not ansible_check_mode
             - provided_password | length == 0
 
@@ -47,11 +54,12 @@
 
         - name: Install the required applications
           community.general.homebrew_cask:
-            name: "{{ required_homebrew_casks }}"
+            name: "{{ applications_to_install }}"
             path: /opt/homebrew/bin
             state: present
             accept_external_apps: true
             sudo_password: "{{ provided_password or password_prompt.user_input | default('') }}"
+          when: applications_to_install | length > 0
 
     - name: Install command-line tools and libraries
       community.general.homebrew:

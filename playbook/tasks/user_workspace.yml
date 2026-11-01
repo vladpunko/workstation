@@ -78,6 +78,9 @@
     VSCODE_PORTABLE: ""
     VSCODE_DEV: ""
   vars:
+    # Use the application's own CLI so manual installations work without a Homebrew link.
+    code_editor_executable: "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
+
     # The editor treats differently capitalized extension identifiers as equal.
     requested_extensions: "{{ required_vscode_extensions | map('lower') | list }}"
     normalized_installed_extensions: >-
@@ -91,7 +94,7 @@
     # The editor may be missing when previewing the setup of a new system.
     - name: Check whether the code editor is installed
       ansible.builtin.stat:
-        path: /opt/homebrew/bin/code
+        path: "{{ code_editor_executable }}"
         follow: true
         get_checksum: false
       register: code_editor_command
@@ -99,7 +102,7 @@
     - name: List the extensions installed in the code editor
       ansible.builtin.command:
         argv:
-          - /opt/homebrew/bin/code
+          - "{{ code_editor_executable }}"
           - --list-extensions
       register: installed_vscode_extensions
       changed_when: false
@@ -118,7 +121,7 @@
     - name: Install missing extensions in the code editor
       ansible.builtin.command:
         argv:
-          - /opt/homebrew/bin/code
+          - "{{ code_editor_executable }}"
           - --install-extension
           - "{{ item }}"
       changed_when: true
