@@ -3,6 +3,12 @@
   hosts: localhost
   gather_facts: true
 
+  vars_prompt:
+    - name: ansible_become_password
+      prompt: Enter your macOS login password for application installers
+      private: true
+      unsafe: true
+
   environment:
     # Make Homebrew tools available before installing the user's shell settings.
     PATH: "/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:{{ lookup('ansible.builtin.env', 'PATH') }}"
@@ -34,8 +40,16 @@
         that: ansible_facts.user_uid != 0
         fail_msg: >-
           Run this playbook without `sudo` from your regular macOS account.
-          Application installers will ask for your login password when needed.
         quiet: true
+      tags: always
+
+    - name: Check that a login password was entered
+      ansible.builtin.assert:
+        that: ansible_become_password | default('', true) | length > 0
+        fail_msg: >-
+          No login password was entered. Enter your macOS login password when prompted at startup.
+        quiet: true
+      when: not ansible_check_mode
       tags: always
 
     - name: Check the Homebrew installation

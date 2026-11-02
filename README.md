@@ -22,6 +22,8 @@ brew install python@3.13
 
 ## Installation
 
+The playbook asks for your macOS login password before running tasks.
+
 ```bash
 # Step -- 1.
 git clone --depth=1 --branch=macos https://github.com/vladpunko/workstation.git

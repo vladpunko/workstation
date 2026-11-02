@@ -11,9 +11,7 @@
   block:
     - name: Install desktop applications
       vars:
-        provided_password: "{{ ansible_become_password | default('', true) }}"
-
-        # Bundle versions identify manual installations so they do not trigger a password prompt.
+        # Keep manually installed applications from being installed again.
         applications_to_install: >-
           {{ (homebrew_applications.stdout | from_json).casks
              | rejectattr('installed')
@@ -31,34 +29,13 @@
           changed_when: false
           check_mode: false
 
-        - name: Ask for the login password for application installers
-          # Ansible runs Homebrew without a terminal, so installers cannot prompt for a password.
-          ansible.builtin.pause:
-            prompt: Enter your macOS login password so Homebrew can run application installers
-            echo: false
-          register: password_prompt
-          no_log: true
-          when:
-            - applications_to_install | length > 0
-            - not ansible_check_mode
-            - provided_password | length == 0
-
-        - name: Check that a login password was entered
-          ansible.builtin.assert:
-            that: password_prompt.user_input | default('') | length > 0
-            fail_msg: >-
-              No login password was entered. Run this playbook in an interactive terminal
-              and enter your macOS login password when prompted.
-            quiet: true
-          when: password_prompt is not skipped
-
         - name: Install the required applications
           community.general.homebrew_cask:
             name: "{{ applications_to_install }}"
             path: /opt/homebrew/bin
             state: present
             accept_external_apps: true
-            sudo_password: "{{ provided_password or password_prompt.user_input | default('') }}"
+            sudo_password: "{{ ansible_become_password }}"
           when: applications_to_install | length > 0
 
     - name: Install command-line tools and libraries
