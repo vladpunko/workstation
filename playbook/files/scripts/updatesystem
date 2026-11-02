@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/bash
 
 # Created by: Vladislav Punko <iam.vlad.punko@gmail.com>
 # Created date: 2023-06-25
@@ -7,30 +7,39 @@ set -o errexit
 set -o nounset
 
 # Fail early with a clear message when `brew` is not installed.
-if ! command -v brew > /dev/null 2>&1; then
-  echo 'Homebrew is required to run updatesystem.' >&2
+if [[ ! -x "$(command -v brew)" ]]
+then
+  echo 'Homebrew is not installed.' >&2
+  # Stop this program runtime and return the exit status code.
   exit 1
 fi
 
-# Refresh the local Homebrew metadata before any upgrades.
+# Package upgrades depend on fresh Homebrew metadata.
 command brew update
 
-# Upgrade all Homebrew-installed packages to their latest versions.
-command brew upgrade
+# Separate upgrade steps make failures easier to identify.
+command brew upgrade --formula
 command brew upgrade --cask
 
-# Clear cached Homebrew downloads so `brew --cache` does not grow without
-# bounds.
-command rm -f -r -- "$(command brew --cache)"
+# Removing cached downloads alone leaves old package versions installed.
+command brew cleanup
 
-# Run ClamAV updates only when the machine actually has `freshclam` installed.
-if command -v freshclam > /dev/null 2>&1; then
-  # Refresh the primary virus definitions on this system.
-  command freshclam --show-progress
+# Remove all contents from the homebrew cache directory.
+homebrew_cache="$(command brew --cache)"
+command rm -f -r -- "${homebrew_cache}"
+
+# Optional updates are independent, but any failure must reach the caller.
+update_status=0
+
+if [[ -x "$(command -v freshclam)" ]]
+then
+  command freshclam --show-progress || update_status=1
 fi
 
-# Update Miniconda only when the user has a local installation to update.
-if [ -x "${HOME}/.miniconda/bin/conda" ]; then
-  # Update the Miniconda environment when `~/.miniconda/bin/conda` exists.
-  command "${HOME}/.miniconda/bin/conda" update --yes --update-all
+# An activated project environment must not become the update target.
+if [[ -x "${HOME}/.miniconda/bin/conda" ]]
+then
+  command "${HOME}/.miniconda/bin/conda" update --name base --all --yes || update_status=1
 fi
+
+exit "${update_status}"
