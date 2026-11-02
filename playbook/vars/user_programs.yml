@@ -20,6 +20,5 @@ required_user_programs:
 
 # Place local helpers in `~/.local/bin` to make them available in the shell.
 required_user_scripts:
-  - scripts/gitmirror
   - scripts/sshkey
   - scripts/updatesystem
