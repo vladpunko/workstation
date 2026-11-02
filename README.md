@@ -24,7 +24,7 @@ brew install python@3.13
 
 ```bash
 # Step -- 1.
-git clone --depth=1 --branch=master https://github.com/vladpunko/workstation.git
+git clone --depth=1 --branch=macos https://github.com/vladpunko/workstation.git
 
 # Step -- 2.
 cd ./workstation

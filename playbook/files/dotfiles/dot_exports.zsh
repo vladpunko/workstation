@@ -34,7 +34,8 @@ export HISTSIZE=65535
 # Persist up to 65535 commands on disk.
 export SAVEHIST=65535
 
-if [[ -z "${TMUX}" ]]; then
+if [[ -z "${TMUX}" ]]
+then
   # Advertise a regular 256-color terminal outside `tmux`.
   export TERM=xterm-256color
 else

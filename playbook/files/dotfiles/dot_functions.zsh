@@ -43,12 +43,14 @@ o() {
 }
 
 pdfsanitize() {
+  command qpdf --version > /dev/null || return
+
   # Avoid keeping a backup with the original metadata.
-  if ! command exiftool -all= -overwrite_original -- "$1"
-  then
-    return 1
-  fi
+  command exiftool -all= -overwrite_original -- "${1:a}" || return
+
+  # Prevent recovery of deleted metadata.
+  command qpdf --linearize --replace-input "${1:a}" || return
 
   # Remove attributes that reveal where the file came from.
-  command xattr -c -- "$1"
+  command xattr -c -- "${1:a}"
 }

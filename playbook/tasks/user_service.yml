@@ -88,10 +88,7 @@
     # A service may not be loaded during initial setup, so exit code `113` is expected.
     - name: Check whether the service is loaded
       ansible.builtin.command:
-        argv:
-          - /bin/launchctl
-          - print
-          - "{{ service_target }}"
+        argv: [/bin/launchctl, print, "{{ service_target }}"]
       register: service_status
       changed_when: false
       failed_when: service_status.rc not in [0, 113]
@@ -99,10 +96,7 @@
 
     - name: Check whether the previous service label is still loaded
       ansible.builtin.command:
-        argv:
-          - /bin/launchctl
-          - print
-          - "{{ services_domain }}/{{ previous_service_label.stdout }}"
+        argv: [/bin/launchctl, print, "{{ services_domain }}/{{ previous_service_label.stdout }}"]
       register: previous_service_status
       changed_when: false
       failed_when: previous_service_status.rc not in [0, 113]
@@ -200,19 +194,13 @@
         # Disabled services must be enabled before they can be loaded again.
         - name: Enable the service in the desktop session
           ansible.builtin.command:
-            argv:
-              - /bin/launchctl
-              - enable
-              - "{{ service_target }}"
+            argv: [/bin/launchctl, enable, "{{ service_target }}"]
           changed_when: true
           when: service_is_disabled
 
         - name: Unload the service registered under the previous label
           ansible.builtin.command:
-            argv:
-              - /bin/launchctl
-              - bootout
-              - "{{ services_domain }}/{{ previous_service_label.stdout }}"
+            argv: [/bin/launchctl, bootout, "{{ services_domain }}/{{ previous_service_label.stdout }}"]
           changed_when: true
           when:
             - service_needs_reload
@@ -221,10 +209,7 @@
 
         - name: Unload the service before replacing its configuration
           ansible.builtin.command:
-            argv:
-              - /bin/launchctl
-              - bootout
-              - "{{ service_target }}"
+            argv: [/bin/launchctl, bootout, "{{ service_target }}"]
           changed_when: true
           when:
             - service_needs_reload
@@ -248,22 +233,14 @@
       block:
         - name: Load the service into the desktop session
           ansible.builtin.command:
-            argv:
-              - /bin/launchctl
-              - bootstrap
-              - "{{ services_domain }}"
-              - "{{ service_path }}"
+            argv: [/bin/launchctl, bootstrap, "{{ services_domain }}", "{{ service_path }}"]
           changed_when: true
           when: service_needs_reload
 
         # Definitions can load without starting a process, so request a start explicitly.
         - name: Start the service and read its process ID
           ansible.builtin.command:
-            argv:
-              - /bin/launchctl
-              - kickstart
-              - -p
-              - "{{ service_target }}"
+            argv: [/bin/launchctl, kickstart, -p, "{{ service_target }}"]
           register: service_process
           changed_when: service_needs_reload or not service_is_running
 
@@ -302,10 +279,7 @@
 
         - name: Check that the service is still running
           ansible.builtin.command:
-            argv:
-              - /bin/launchctl
-              - print
-              - "{{ service_target }}"
+            argv: [/bin/launchctl, print, "{{ service_target }}"]
           register: service_ready
           changed_when: false
           failed_when: service_ready.rc != 0 or 'state = running' not in service_ready.stdout
