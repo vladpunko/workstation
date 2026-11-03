@@ -1,57 +1,65 @@
 ---
-- include_vars: vars/system_packages.yml
-
-- name: install system dependencies and updates
+- name: Install system packages
   become: true
-  become_method: sudo
-  block:
-    - name: select the fastest mirror from the fedora public mirrors for the main package manager
-      ini_file:
-        path: /etc/dnf/dnf.conf
-        section: main
-        option: fastestmirror
-        value: "true" # it should be a quoted string to avoid change issues
-
-    - name: add the required public keys to the main system database for free and non-free repositories
-      rpm_key:
-        key: "{{ item }}"
-        state: present
-      with_items:
-        - "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-free-fedora-{{ rpmfusion_key_version }}"
-        - "https://rpmfusion.org/keys?action=AttachFile&do=get&target=RPM-GPG-KEY-rpmfusion-nonfree-fedora-{{ rpmfusion_key_version }}"
-
-    - name: install free and non-free repositories to provide extra packages for the current operating system
-      dnf:
-        name:
-          - "https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ rpmfusion_distribution_version }}.noarch.rpm"
-          - "https://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ rpmfusion_distribution_version }}.noarch.rpm"
-        state: present
-
-    - name: install the required repository to provide visual studio code packages for the current operating system
-      yum_repository:
-        name: vscode
-        description: visual studio code repository
-        baseurl: "https://packages.microsoft.com/yumrepos/vscode"
-        gpgkey: "https://packages.microsoft.com/keys/microsoft.asc"
-        gpgcheck: true
-        state: present
-
-    - name: check the repositories for newer packages and updates them
-      dnf:
-        name: "*"
-        state: latest
-        update_cache: true
-
-    - name: install the required development tools on the current operating system
-      dnf:
-        name: "{{ required_packages }}"
-        state: latest
-        update_cache: true
-
-    - name: clean up packages installed as dependencies but which are no longer required
-      dnf:
-        autoremove: true
-  when: ansible_distribution == "Fedora"
   tags:
     - packages
     - packages-workstation
+  block:
+    # Ansible installs missing package manager bindings automatically during a normal run.
+    - name: Install the repository signing keys
+      ansible.builtin.dnf:
+        name: distribution-gpg-keys
+        state: present
+
+    # Fedora distributes these keys through its signed package repository.
+    - name: Trust the RPM Fusion signing keys
+      ansible.builtin.rpm_key:
+        key: "/usr/share/distribution-gpg-keys/rpmfusion/RPM-GPG-KEY-rpmfusion-{{ item }}-fedora-{{ fedora_version }}"
+        state: present
+      loop: [free, nonfree]
+      # A preview may not have installed these key files.
+      when: not ansible_check_mode
+
+    - name: Install the RPM Fusion repositories
+      ansible.builtin.dnf:
+        name:
+          - "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-{{ fedora_version }}.noarch.rpm"
+          - "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-{{ fedora_version }}.noarch.rpm"
+        state: present
+      # A preview does not import the keys needed to verify these packages.
+      when: not ansible_check_mode
+
+    - name: Configure the code editor repository
+      ansible.builtin.yum_repository:
+        name: vscode
+        description: Visual Studio Code
+        baseurl: https://packages.microsoft.com/yumrepos/vscode
+        gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+        gpgcheck: true
+        enabled: true
+        state: present
+
+    # Previewed repository changes do not create files on disk.
+    - name: Check whether the package repositories are available
+      ansible.builtin.stat:
+        path: "/etc/yum.repos.d/{{ item }}.repo"
+      loop: [rpmfusion-free, rpmfusion-nonfree, vscode]
+      register: package_repositories
+
+    # A preview cannot resolve packages from repositories that have not been installed.
+    - name: Install applications and development tools
+      ansible.builtin.dnf:
+        name: "{{ required_packages }}"
+        state: present
+        # Newly added repositories need fresh package metadata.
+        update_cache: true
+      when: not ansible_check_mode or false not in package_repositories.results | map(attribute='stat.exists') | list
+
+    - name: Show the pending package installation
+      ansible.builtin.debug:
+        msg: The repositories and required packages will be installed.
+      # Count the pending installation as a change in the preview.
+      changed_when: true
+      when:
+        - ansible_check_mode
+        - false in package_repositories.results | map(attribute='stat.exists') | list
