@@ -1,4 +1,13 @@
 export PYENV_ROOT="${HOME}/.pyenv"
 
-# Set up paths for user executables and application binaries.
-export PATH="${PYENV_ROOT}/bin:${HOME}/.miniconda/bin:${HOME}/bin:${HOME}/.local/bin:/usr/local/bin:/usr/local/sbin${PATH:+:${PATH}}"
+# Keep user tools ahead of system executables.
+typeset -U path
+path=(
+  "${PYENV_ROOT}/bin"
+  "${HOME}/.miniconda/bin"
+  "${HOME}/bin"
+  "${HOME}/.local/bin"
+  /usr/local/bin
+  /usr/local/sbin
+  $path
+)
