@@ -76,6 +76,7 @@ required_packages:
   - openssl
   - openssl-devel # python dependency
   - patch
+  - pinentry
   - poetry
   - putty
   - pypy3

@@ -26,6 +26,9 @@ dotfiles:
   - src: dotfiles/dot_gitignore_global
     dest: ~/.gitignore_global
 
+  - src: dotfiles/dot_gpg_agent.conf
+    dest: ~/.gnupg/gpg-agent.conf
+
   - src: dotfiles/dot_gpg.conf
     dest: ~/.gnupg/gpg.conf
 
