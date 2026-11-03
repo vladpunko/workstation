@@ -1,22 +1,58 @@
-#!/usr/bin/env sh
+#!/bin/bash
 
 # Created by: Vladislav Punko <iam.vlad.punko@gmail.com>
-# Created date: 2025-11-10
+# Created date: 2025-07-25
 
 set -o errexit
 set -o nounset
 
-path="${HOME}/.ssh/id_ed25519"
+# Restrict the default permissions so newly created key files stay private.
+umask 077
 
-if python3 -u - << EOF
-import os, sys
+key_directory="${HOME}/.ssh"
+private_key="${key_directory}/id_ed25519"
+public_key="${private_key}.pub"
 
-sys.exit(os.path.isfile("${path}"))
-EOF
+# Keep other local accounts from accessing the key directory.
+command mkdir -p -- "${key_directory}"
+command chmod 0700 "${key_directory}"
+
+# Reuse the existing private key when only its public key needs restoring.
+action="$(
+  command python3 - "${private_key}" "${public_key}" <<'PYTHON'
+import sys
+from pathlib import Path
+
+private_key_path, public_key_path = sys.argv[1:]
+
+if not Path(private_key_path).is_file():
+    action = "create"
+elif not Path(public_key_path).is_file():
+    action = "restore-public"
+else:
+    action = "print"
+
+print(action)
+PYTHON
+)"
+
+if [[ "${action}" == create ]]
 then
-  # Create new ssh host keys with an empty passphrase.
-  ssh-keygen -t ed25519 -C "$(hostname)" -f "${path}" -q -N ''
+  command ssh-keygen -t ed25519 -C "$(command hostname)" -f "${private_key}" -q -N ''
+elif [[ "${action}" == restore-public ]]
+then
+  # Replace the public key only after it has been recovered successfully.
+  temporary_public_key="$(command mktemp "${public_key}.XXXXXX")"
+  trap 'command rm -f -- "${temporary_public_key}"' EXIT
+
+  # Exit on signals so the cleanup trap also runs when recovery is interrupted.
+  trap 'exit 129' HUP
+  trap 'exit 130' INT
+  trap 'exit 143' TERM
+
+  command ssh-keygen -y -f "${private_key}" > "${temporary_public_key}"
+  command mv -f -- "${temporary_public_key}" "${public_key}"
 fi
 
-# Output the public ssh key to the console.
-cat "${path}.pub"
+# Print the public key so it can be copied directly.
+command cat "${public_key}"
