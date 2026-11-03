@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/bash
 
 # Created by: Vladislav Punko <iam.vlad.punko@gmail.com>
 # Created date: 2021-08-12
@@ -6,22 +6,39 @@
 set -o errexit
 set -o nounset
 
-# Ask for the administrator's password in advance.
-sudo --validate
+# Optional updates are independent, but any failure must reach the caller.
+update_status=0
 
-# Keep-alive: update existing user's password timestamp until this script finishes on the current machine.
-while true; do sudo --non-interactive true; sleep 60; kill -s 0 "$$" || exit; done 2> /dev/null &
+# Keep administrator privileges limited to system updates.
+if [[ "${EUID}" -eq 0 ]]
+then
+  # Refresh package metadata and install available updates.
+  command dnf upgrade --refresh --assumeyes
 
-if [ -f /etc/redhat-release ] && grep --ignore-case --quiet fedora /etc/redhat-release; then
-  # Check the repositories for newer packages and updates them.
-  sudo dnf update --refresh --assumeyes
+  # Clear the package cache.
+  command dnf clean all
 
-  # Clean all package cache.
-  sudo dnf clean all
+  if [[ -x "$(command -v freshclam)" ]]
+  then
+    command freshclam --show-progress || update_status=1
+  fi
+
+  exit "${update_status}"
 fi
 
-# Update the main virus database on the current machine.
-sudo freshclam --show-progress
+# Ask for privileges once for all system updates.
+command sudo -- /bin/bash "$0" || update_status=$?
 
-# Update all programs and packages of the main scientific computation system.
-"${HOME}/.miniconda/bin/conda" update --update-all --yes
+# Do not start user updates after an interrupted system update.
+if [[ "${update_status}" -ge 128 ]]
+then
+  exit "${update_status}"
+fi
+
+# An activated project environment must not become the update target.
+if [[ -x "${HOME}/.miniconda/bin/conda" ]]
+then
+  command "${HOME}/.miniconda/bin/conda" update --name base --all --yes || update_status=1
+fi
+
+exit "${update_status}"
