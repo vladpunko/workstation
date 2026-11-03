@@ -80,4 +80,4 @@ alias open='xdg-open'
 alias pbcopy='wl-copy'
 
 # Paste the saved text from the system clipboard.
-alias pbpaste='wl-paste'
+alias pbpaste='wl-paste --no-newline'
