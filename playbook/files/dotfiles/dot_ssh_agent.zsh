@@ -1,34 +1,60 @@
-SSH_AUTH_SOCK="/run/user/$(id --user)/ssh_agent.sock"
-
-SSH_AGENT_PID_FILE="/run/user/$(id --user)/ssh_agent.pid"
-if python3 -u - << EOF
-import os, sys
-
-pid = ""
-if os.path.exists("${SSH_AGENT_PID_FILE}"):
-    pid = open("${SSH_AGENT_PID_FILE}").read().strip()
-
-if pid:
-    path = os.path.normpath("/proc/%s/comm" % pid)
-    cmd = open(path).read().strip() if os.path.exists(path) else ""
-    if cmd == "ssh-agent":
-        sys.exit(0)
-
-sys.exit(1)
-EOF
-then
-  echo "Active SSH authentication agent found with PID: $(cat "${SSH_AGENT_PID_FILE}")"
-else
-  command rm -- "${SSH_AUTH_SOCK}" > /dev/null 2>&1
-
-  if eval -- "$(ssh-agent -a "${SSH_AUTH_SOCK}")"
+_ssh_agent_available() {
+  if command ssh-add -l > /dev/null 2>&1
   then
-    echo "${SSH_AGENT_PID}" > "${SSH_AGENT_PID_FILE}"
-    echo "SSH agent started and running under PID: ${SSH_AGENT_PID}"
+    return 0
   else
-    echo "Could not launch new SSH agent."
+    # Reuse the agent even when no keys are loaded.
+    [[ "$?" -eq 1 ]]
+  fi
+}
+
+# Reuse the session agent to keep SSH forwarding working.
+if _ssh_agent_available
+then
+  return 0
+fi
+
+# Share the desktop agent between terminal sessions.
+if [[ -S "${XDG_RUNTIME_DIR}/gcr/ssh" ]]
+then
+  export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/gcr/ssh"
+
+  if _ssh_agent_available
+  then
+    return 0
   fi
 fi
-export SSH_AGENT_PID_FILE
 
-export SSH_AUTH_SOCK
+# Reuse a standalone agent when the desktop agent is unavailable.
+export SSH_AUTH_SOCK="${XDG_RUNTIME_DIR}/ssh_agent.sock"
+
+# Prevent simultaneous shells from starting separate agents.
+zmodload zsh/system
+command touch -- "${XDG_RUNTIME_DIR}/ssh_agent.lock"
+
+if ! zsystem flock -f ssh_agent_lock_descriptor "${XDG_RUNTIME_DIR}/ssh_agent.lock"
+then
+  return 1
+fi
+
+{
+  # Another shell may have started an agent while this shell waited.
+  if _ssh_agent_available
+  then
+    return 0
+  fi
+
+  command rm -f -- "${SSH_AUTH_SOCK}"
+
+  # Keep loaded keys available across SSH connections.
+  if ssh_agent_environment="$(command ssh-agent -s -a "${SSH_AUTH_SOCK}")"
+  then
+    eval -- "${ssh_agent_environment}" > /dev/null
+  else
+    return 1
+  fi
+} always {
+  # Let other shells continue even if agent startup fails.
+  zsystem flock -u "${ssh_agent_lock_descriptor}"
+  unset ssh_agent_lock_descriptor ssh_agent_environment
+}
