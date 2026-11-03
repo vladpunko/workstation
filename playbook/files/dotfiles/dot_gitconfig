@@ -36,7 +36,8 @@
   ui = auto
 
 [commit]
-  gpgsign = true
+  # Enable signing in `~/.gitconfig.local` after restoring your private key.
+  gpgsign = false
 
 [core]
   # Set the preferred text editor on the current machine.
@@ -48,7 +49,7 @@
   # Ignore the time difference between the index and the current working tree.
   trustctime = false
 
-  # Fix the issue with the unicode decomposition of filenames in a local working repository.
+  # Keep Unicode filename handling consistent across machines.
   precomposeUnicode = false
 
   # Make git display names in russian.
@@ -66,6 +67,12 @@
   # Automatic cleaning is to be made in the current working tree.
   prune = true
 
+[filter "lfs"]
+  clean = git-lfs clean -- %f
+  smudge = git-lfs smudge -- %f
+  process = git-lfs filter-process
+  required = true
+
 [pull]
   # Automatic recombination is to be made in the current working tree.
   rebase = true
@@ -81,7 +88,7 @@
   submoduleSummary = true
 
 [gpg]
-  program = gpg2
+  program = gpg
 
 [init]
   defaultBranch = master
@@ -95,4 +102,6 @@
   # Set the current user's name.
   name = Vladislav Punko
 
-  signingkey = F82DC310FE9F8F548F338D20CD1527FCFAB2E424
+[include]
+  # Personal credentials and signing settings live outside the managed file.
+  path = ~/.gitconfig.local
