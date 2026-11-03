@@ -1,3 +1,20 @@
 ---
-user: k28
-group: k28
+# System modules need the Fedora package manager bindings.
+ansible_python_interpreter: /usr/bin/python3
+
+# Keep personal files and processes under the account running this playbook.
+user: "{{ ansible_facts.user_id }}"
+group: "{{ ansible_facts.user_gid }}"
+user_home: "{{ ansible_facts.user_dir }}"
+
+# Keep installed commands separate from their source checkouts.
+scripts_location: "{{ user_home }}/.local/bin"
+sources_location: "{{ user_home }}/.local/share/workstation/sources"
+
+# Keep Miniconda separate from `pyenv` so additional Python versions do not affect the main environment.
+miniconda_location: "{{ user_home }}/.miniconda"
+pyenv_location: "{{ user_home }}/.pyenv"
+
+# Use the desktop session so services start when the user signs in.
+services_location: "{{ user_home }}/.config/systemd/user"
+user_runtime_directory: "/run/user/{{ ansible_facts.user_uid }}"
