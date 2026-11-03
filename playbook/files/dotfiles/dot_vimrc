@@ -28,3 +28,4 @@ set wildmode=longest:full,full
 " Use spaces instead of tabs.
 set expandtab
 set tabstop=4
+set shiftwidth=4
