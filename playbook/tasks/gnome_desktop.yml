@@ -1,0 +1,34 @@
+---
+- name: Apply the user's GNOME settings
+  become: true
+  become_user: "{{ user }}"
+  # Use the user's session so changes reach the running desktop.
+  environment:
+    HOME: "{{ user_home }}"
+    DBUS_SESSION_BUS_ADDRESS: "unix:path={{ user_runtime_directory }}/bus"
+    XDG_RUNTIME_DIR: "{{ user_runtime_directory }}"
+  tags:
+    - desktop
+    - desktop-workstation
+  block:
+    - name: Check for the desktop session bus
+      # Desktop changes require a running user session.
+      ansible.builtin.stat:
+        path: "{{ user_runtime_directory }}/bus"
+      register: session_bus
+
+    - name: Validate the user's GNOME session
+      # A preview can run before the user signs in.
+      ansible.builtin.assert:
+        that: session_bus.stat.exists
+        fail_msg: Log in to GNOME before applying desktop settings.
+        quiet: true
+      when: not ansible_check_mode
+
+    - name: Update the user's desktop preferences
+      community.general.dconf:
+        key: "{{ item.key }}"
+        value: "{{ item.value }}"
+        state: present
+      with_dict: "{{ gnome_settings }}"
+      when: session_bus.stat.exists

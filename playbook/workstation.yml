@@ -40,8 +40,48 @@
     - name: Include workspace tasks
       ansible.builtin.import_tasks: tasks/user_workspace.yml
 
-    - name: Include desktop tasks
-      ansible.builtin.import_tasks: tasks/desktop.yml
+    - name: Set the user's default shell
+      # Use the installed shell configuration in new sessions.
+      become: true
+      ansible.builtin.user:
+        name: "{{ user }}"
+        shell: /usr/bin/zsh
+      # A preview may run before the shell package is installed.
+      when: not ansible_check_mode or '/usr/bin/zsh' is file
+      tags:
+        - dotfiles
+        - dotfiles-workstation
+
+    - name: Set up Docker for the current user
+      # Changing system groups and services requires administrator privileges.
+      become: true
+      tags:
+        - docker
+        - docker-workstation
+      block:
+        - name: Create the Docker group
+          # The daemon's socket uses this group for user access.
+          ansible.builtin.group:
+            name: docker
+            state: present
+
+        - name: Grant the current user access to Docker
+          ansible.builtin.user:
+            name: "{{ user }}"
+            groups: docker
+            # Preserve the user's other group memberships.
+            append: true
+
+        - name: Start Docker and enable it at boot
+          # Keep Docker available after a system restart.
+          ansible.builtin.systemd_service:
+            name: docker.service
+            enabled: true
+            state: started
+          when: ansible_facts.service_mgr == "systemd"
+
+    - name: Include GNOME desktop tasks
+      ansible.builtin.import_tasks: tasks/gnome_desktop.yml
 
     - name: Include user program tasks
       ansible.builtin.import_tasks: tasks/user_programs.yml
