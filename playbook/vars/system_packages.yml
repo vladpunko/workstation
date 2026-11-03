@@ -1,13 +1,9 @@
 ---
-rpmfusion_distribution_version: 42
-
-# Set the version of the required public keys for this system distribution.
-# See information: https://rpmfusion.org/keys
-rpmfusion_key_version: 2020
+fedora_version: "44"
 
 required_packages:
-  - "@C Development Tools and Libraries" # some c and c++ dependencies
-  - "@Development Tools"
+  - "@c-development"
+  - "@development-tools"
   - ansible
   - aspell
   - aspell-en
@@ -22,29 +18,32 @@ required_packages:
   - cloc
   - cmake
   - code
-  - copyq
   - curl
   - dconf
   - dconf-editor
   - detox
   - dnf-automatic
-  - dnf-plugin-system-upgrade
   - docker
+  - docker-cli
   - docker-compose
   - expect
   - flameshot
   - fzf
+  - fwupd
   - gcc
   - gdb
   - gdbm-libs # python dependency
+  - gcr
   - gimp
   - git
   - git-extras
   - git-lfs
   - git-secrets
   - glogg
+  - glibc-langpack-en
+  - glibc-langpack-ru
   - gnome-shell-extension-appindicator
-  - gnome-tweak-tool
+  - gnome-tweaks
   - gnupg
   - grep
   - gzip
@@ -82,6 +81,7 @@ required_packages:
   - pypy3
   - python3
   - python3-devel
+  - python3-packaging
   - readline-devel # python dependency
   - repo
   - rsync
@@ -107,5 +107,7 @@ required_packages:
   - wl-clipboard
   - xz
   - xz-devel # python dependency
+  - xdg-utils
   - zlib-devel # python dependency
   - zsh
+  - zoxide
