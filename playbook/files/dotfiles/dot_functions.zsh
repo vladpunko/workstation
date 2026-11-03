@@ -1,37 +1,43 @@
 ff() {
   # Show the contents of the current working directory matching a given string pattern.
-  find "${PWD}" -name "*$1*" -print | sort --reverse --ignore-case | "${PAGER}"
+  # Split the value of `PAGER` so commands such as `less -R` run with their arguments.
+  command find "${PWD}" -name "*$1*" -print | command sort --reverse --ignore-case | ${=PAGER}
 }
 
 g() {
-  if [[ -z "$1" ]]; then
+  if [[ -z "$1" ]]
+  then
     # Show the current user's name and email address in the main working tree.
-    printf "%s <%s>\\n" "$(git config user.name)" "$(git config user.email)"
+    printf "%s <%s>\\n" "$(command git config user.name)" "$(command git config user.email)"
 
     # Show the working tree status.
-    git status --branch --short
+    command git status --branch --short
   else
-    git "$@"
+    command git "$@"
   fi
 }
 compdef g=git
 
 gotoday() {
   local today
-  today="$(date '+%Y-%m-%d')"
+  today="$(command date '+%Y-%m-%d')"
 
   # Create a new directory if it does not exist.
-  mkdir -p -- "${today}"
+  command mkdir -p -- "${today}"
 
   # Navigate into the date-stamped directory just created.
-  cd -P -- "${today}" || return
+  if ! builtin cd -P -- "${today}"
+  then
+    return 1
+  fi
 }
 
 o() {
-  if [[ -z "$1" ]]; then
+  if [[ -z "$1" ]]
+  then
     # Open the current working directory in a new detached program session.
-    detach xdg-open "${PWD}"
+    command detach xdg-open "${PWD}"
   else
-    detach xdg-open "$@"
+    command detach xdg-open "$@"
   fi
 }
