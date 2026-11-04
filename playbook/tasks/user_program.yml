@@ -48,6 +48,17 @@
               - -DCMAKE_OSX_ARCHITECTURES=arm64 # override architectures left in an existing build cache
           changed_when: false
 
+        # Old files must not hide missing build outputs.
+        - name: Remove the previous build outputs
+          ansible.builtin.file:
+            path: "{{ source_file }}"
+            state: absent
+          loop: "{{ program.files }}"
+          loop_control:
+            loop_var: program_file
+            label: "{{ program_file.src }}"
+          changed_when: false
+
         - name: Compile the executable
           ansible.builtin.command:
             argv:
@@ -92,7 +103,6 @@
           ansible.builtin.copy:
             src: "{{ source_file }}"
             dest: "{{ destination_file }}"
-            remote_src: true
             backup: true
             mode: "0755"
           loop: "{{ program.files }}"
