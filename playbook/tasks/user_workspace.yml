@@ -1,92 +1,129 @@
 ---
-- include_vars: vars/dotfiles.yml
-- include_vars: vars/vscode_extensions.yml
-
-- name: set user's settings for programs and packages
+- name: Install the user's configuration files
+  # Keep personal configuration editable without administrator privileges.
+  become: true
+  become_user: "{{ user }}"
+  tags:
+    - dotfiles
+    - dotfiles-workstation
+  environment:
+    HOME: "{{ user_home }}"
   block:
-    - name: Update user's shell
-      become: true
-      become_method: sudo
-      user:
-        name: "{{ user }}"
-        shell: /usr/bin/zsh
+    # A directory destination would make `copy` use a different filename.
+    - name: Check the destinations of the configuration files
+      ansible.builtin.stat:
+        path: "{{ item.dest }}"
+        follow: true
+        get_checksum: false
+      loop: "{{ dotfiles }}"
+      loop_control:
+        label: "{{ item.dest }}"
+      register: configuration_destinations
 
-    - name: create new directories to store user's settings on the current machine
-      file:
-        path: "{{ item.dest | dirname }}" # get the absolute path to store this file on the current machine
+    - name: Stop if a directory blocks a configuration file
+      ansible.builtin.assert:
+        that: not (item.stat.isdir | default(false))
+        fail_msg: >-
+          The destination `{{ item.item.dest }}` is a directory.
+          Move it aside and run this playbook again.
+        quiet: true
+      loop: "{{ configuration_destinations.results }}"
+      loop_control:
+        label: "{{ item.item.dest }}"
+
+    - name: Check which configuration directories already exist
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop: "{{ dotfiles | map(attribute='dest') | map('dirname') | unique(case_sensitive=true) }}"
+      register: dotfile_directories
+
+    # Existing directories may have permissions needed by other applications.
+    - name: Create any missing configuration directories
+      ansible.builtin.file:
+        path: "{{ item.item }}"
         state: directory
         recurse: false
         owner: "{{ user }}"
         group: "{{ group }}"
-        mode: 0700
-      with_items: "{{ dotfiles }}"
+        mode: "0700"
+      loop: "{{ dotfile_directories.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+      when: not item.stat.exists
 
-    - name: set user's settings for the required programs and packages on the current operating system
-      copy:
+    - name: Copy the configuration files into place
+      ansible.builtin.copy:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
         owner: "{{ user }}"
         group: "{{ group }}"
-        mode: 0600
+        backup: true
+        follow: false
+        mode: "0600"
       with_items: "{{ dotfiles }}"
 
-    - name: set user's settings for the main graphical user interface on the current operating system
-      shell: dconf load / < files/views/gnome_views.settings # restore the main desktop settings
-      args:
-        chdir: "{{ playbook_dir }}" # change the current working directory before running this command
-  always:
-    - name: reload all user's services on the current machine
-      systemd:
-        daemon_reload: true
-        scope: user
-  when: ansible_distribution == "Fedora"
-  tags:
-    - dotfiles
-    - dotfiles-workstation
-
-- name: provision visual studio code environment
-  block:
-    - name: install the requred visual studio code extensions on the current machine
-      command: code --force --install-extension "{{ item }}"
-      with_items: "{{ required_vscode_extensions }}"
-  when: ansible_distribution == "Fedora"
+- name: Configure the code editor
+  # Install extensions for the user who runs the editor.
+  become: true
+  become_user: "{{ user }}"
   tags:
     - vscode
     - vscode-workstation
+  environment:
+    HOME: "{{ user_home }}"
+    # Keep inherited settings from switching editor instances or profile directories.
+    VSCODE_IPC_HOOK_CLI: ""
+    VSCODE_APPDATA: ""
+    VSCODE_EXTENSIONS: ""
+    VSCODE_PORTABLE: ""
+    VSCODE_DEV: ""
+  vars:
+    # Use the system installation regardless of shell aliases.
+    code_editor_executable: /usr/bin/code
 
-- name: linux post-installation steps for the docker engine
-  become: true
-  become_method: sudo
+    # The editor treats differently capitalized extension identifiers as equal.
+    requested_extensions: "{{ required_vscode_extensions | map('lower') | list }}"
+    normalized_installed_extensions: >-
+      {{ installed_vscode_extensions.stdout_lines | default([]) | map('lower') | list }}
+
+    # Avoid reinstalling existing extensions and keep the installation order predictable.
+    missing_vscode_extensions: >-
+      {{ requested_extensions | difference(normalized_installed_extensions) | sort }}
+  when: required_vscode_extensions | length > 0
   block:
-    - name: create the docker group on the current machine
-      group:
-        name: docker # new group in order to run docker as a non-root user
-        state: present
+    # The editor may be missing when previewing the setup of a new system.
+    - name: Check whether the code editor is installed
+      ansible.builtin.stat:
+        path: "{{ code_editor_executable }}"
+        follow: true
+        get_checksum: false
+      register: code_editor_command
 
-    - name: add the current user to the docker group
-      user:
-        name: "{{ user }}"
-        groups: docker
-        append: true
-  when: ansible_distribution == "Fedora"
-  tags:
-    - docker
-    - docker-workstation
+    - name: List the extensions installed in the code editor
+      ansible.builtin.command:
+        argv:
+          - "{{ code_editor_executable }}"
+          - --list-extensions
+      register: installed_vscode_extensions
+      changed_when: false
+      check_mode: false
+      failed_when:
+        - installed_vscode_extensions.rc != 0
+        - not ansible_check_mode or code_editor_command.stat.exists
 
-- name: grant flameshot screenshot permission
-  block:
-    - name: set the required screenshot permission for flameshot
-      command: >
-        dbus-send --session --print-reply=literal --dest=org.freedesktop.impl.portal.PermissionStore /org/freedesktop/impl/portal/PermissionStore org.freedesktop.impl.portal.PermissionStore.SetPermission string:'screenshot' boolean:true string:'screenshot' string:'org.flameshot.Flameshot' array:string:'yes'
+    - name: Show which extensions will be installed in the code editor
+      ansible.builtin.debug:
+        msg: "The code editor will install the `{{ item }}` extension."
+      changed_when: true
+      loop: "{{ missing_vscode_extensions }}"
+      when: ansible_check_mode
 
-    - name: check screenshot permission
-      command: >
-        dbus-send --session --print-reply=literal --dest=org.freedesktop.impl.portal.PermissionStore /org/freedesktop/impl/portal/PermissionStore org.freedesktop.impl.portal.PermissionStore.Lookup string:'screenshot' string:'screenshot'
-      register: screenshot_permission_check
-
-    - debug:
-        var: screenshot_permission_check.stdout
-  when: ansible_distribution == "Fedora"
-  tags:
-    - screenshot-permissions
-    - screenshot-permissions-workstation
+    - name: Install missing extensions in the code editor
+      ansible.builtin.command:
+        argv:
+          - "{{ code_editor_executable }}"
+          - --install-extension
+          - "{{ item }}"
+      changed_when: true
+      loop: "{{ missing_vscode_extensions }}"
+      when: not ansible_check_mode
