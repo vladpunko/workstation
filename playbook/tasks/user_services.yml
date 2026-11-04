@@ -1,43 +1,36 @@
 ---
-- include_vars: vars/user_services.yml
-
-- name: check if system daemon directory exists
-  stat:
-    path: /etc/systemd/system
-  register: system_daemon_directory
-
-- name: install and start user's services
-  block:
-    - name: create new private variables for this logical group of tasks
-      set_fact:
-        services_location: ~/.config/systemd/user
-
-    - name: create a new directory to store user's own units on the current machine
-      file:
-        path: "{{ services_location }}"
-        state: directory
-        recurse: false
-        owner: "{{ user }}"
-        group: "{{ group }}"
-        mode: 0755
-
-    - name: install the required services for this user on the current operating system
-      copy:
-        src: "{{ item }}"
-        dest: "{{ services_location }}" # it is a path to put user's own units
-        owner: "{{ user }}"
-        group: "{{ group }}"
-        mode: 0644
-      with_items: "{{ required_user_services }}"
-
-    - name: start and enable all user's services on the current operating system
-      systemd:
-        name: "{{ item | basename }}" # get the current service name
-        enabled: true
-        scope: user
-        state: stopped
-      with_items: "{{ required_user_services }}"
-  when: ansible_distribution == "Fedora" and system_daemon_directory.stat.exists
+- name: Install and start user services
+  # Services and their configuration belong to the user who runs them.
+  become: true
+  become_user: "{{ user }}"
+  environment:
+    HOME: "{{ user_home }}"
+    DBUS_SESSION_BUS_ADDRESS: "unix:path={{ user_runtime_directory }}/bus"
+    XDG_RUNTIME_DIR: "{{ user_runtime_directory }}"
   tags:
     - services
     - services-workstation
+  when: required_user_services | length > 0
+  block:
+    # A socket file alone does not prove that the user service manager is available.
+    - name: Check the user service manager
+      ansible.builtin.command:
+        argv: [/usr/bin/systemctl, --user, show, --property=Version, --value]
+      register: service_manager
+      changed_when: false
+      failed_when: false
+      check_mode: false
+
+    - name: Require a user session
+      ansible.builtin.assert:
+        that: service_manager.rc == 0
+        fail_msg: Sign in to your desktop account before configuring user services.
+        quiet: true
+      when: not ansible_check_mode
+
+    - name: Configure each user service
+      ansible.builtin.include_tasks: user_service.yml
+      loop: "{{ required_user_services }}"
+      loop_control:
+        loop_var: service
+        label: "{{ service.name }}"
