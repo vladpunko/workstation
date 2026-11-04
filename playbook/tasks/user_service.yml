@@ -1,0 +1,247 @@
+---
+- name: Configure the user service
+  vars:
+    service_path: "{{ services_location }}/{{ service.name }}"
+
+    service_definition:
+      src: "{{ service.src }}"
+      dest: "{{ service_path }}"
+    # Reload the service when its application settings change as well.
+    service_files: "{{ [service_definition] + (service.configuration | default([])) }}"
+
+    service_state: >-
+      {{ dict(service_status.stdout_lines | default([]) | map('split', '=')) }}
+    service_needs_restart: >-
+      {{ service_changes.changed or service_state.NeedDaemonReload | default('no') == 'yes' }}
+
+  module_defaults:
+    ansible.builtin.file:
+      owner: "{{ user }}"
+      group: "{{ group }}"
+    ansible.builtin.copy:
+      owner: "{{ user }}"
+      group: "{{ group }}"
+      follow: false # replace configuration links without modifying their targets
+
+  block:
+    - name: Validate the service files and state
+      block:
+        # Invalid definitions must not stop a working service.
+        - name: Validate the service definition
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/systemd-analyze
+              - --user
+              - --man=no
+              - --recursive-errors=no
+              - verify
+              # The installed unit name can differ from the source filename.
+              - "{{ playbook_dir }}/files/{{ service.src }}:{{ service.name }}"
+          changed_when: false
+          # A preview may not have installed the executable referenced by the unit yet.
+          when: not ansible_check_mode
+
+        # Copying to a directory would silently change the destination filename.
+        # Paths can be checked directly because this playbook runs on the local workstation.
+        - name: Check the destinations for the service files
+          ansible.builtin.assert:
+            that: service_file.dest is not exists or service_file.dest is file
+            fail_msg: >-
+              The service needs {{ service_file.dest }} to be a file.
+              Move the existing item aside and run this playbook again.
+            quiet: true
+          loop: "{{ service_files }}"
+          loop_control:
+            loop_var: service_file
+            label: "{{ service_file.dest }}"
+
+        - name: Read the service state
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/systemctl
+              - --user
+              - show
+              - --property=LoadState,ActiveState,UnitFileState,NeedDaemonReload
+              - --
+              - "{{ service.name }}"
+          register: service_status
+          changed_when: false
+          # An uninstalled unit is expected during initial setup.
+          failed_when: service_status.rc not in [0, 4]
+          check_mode: false
+          when: service_manager.rc == 0
+
+    - name: Prepare the service directories
+      block:
+        # Existing directories may have permissions needed by other applications.
+        - name: Create missing service configuration directories
+          ansible.builtin.file:
+            path: "{{ service_file.dest | dirname }}"
+            state: directory
+            mode: "0700"
+          loop: "{{ service_files }}"
+          loop_control:
+            loop_var: service_file
+            label: "{{ service_file.dest | dirname }}"
+          when: (service_file.dest | dirname) is not directory
+
+        - name: Create the notebook working directory
+          ansible.builtin.file:
+            path: "{{ user_home }}/Documents"
+            state: directory
+            mode: "0700"
+          when: (user_home + '/Documents') is not directory
+
+    - name: Plan the service update
+      block:
+        # Keep installed files unchanged until the service has been stopped successfully.
+        - name: Compare the service definition and configuration
+          ansible.builtin.copy:
+            src: "{{ service_file.src }}"
+            dest: "{{ service_file.dest }}"
+            mode: "0600"
+          loop: "{{ service_files }}"
+          loop_control:
+            loop_var: service_file
+            label: "{{ service_file.dest }}"
+          check_mode: true
+          diff: false # service settings may contain credentials that should stay out of the preview
+          register: service_changes
+
+        # Detect directory permission errors before stopping a working service.
+        - name: Check permissions for the service file directories
+          ansible.builtin.stat:
+            path: "{{ service_file.dest | dirname }}"
+            follow: true
+          loop: "{{ service_files }}"
+          loop_control:
+            loop_var: service_file
+            label: "{{ service_file.dest | dirname }}"
+          register: service_directory_access
+
+        # A preview cannot check permissions for directories that do not exist yet.
+        - name: Require write access to the service file directories
+          ansible.builtin.assert:
+            that: directory.stat.writeable
+            fail_msg: "Restore write access to {{ directory.service_file.dest | dirname }} before updating the service."
+            quiet: true
+          loop: "{{ service_directory_access.results }}"
+          loop_control:
+            loop_var: directory
+            label: "{{ directory.service_file.dest | dirname }}"
+          when:
+            - service_needs_restart
+            - directory.stat.exists
+
+        - name: Show the planned service changes
+          ansible.builtin.debug:
+            msg: "The service {{ service.name }} will be configured and started."
+          changed_when: true # include pending service actions in the preview summary
+          when:
+            - ansible_check_mode
+            - >-
+              service_needs_restart
+              or service_state.ActiveState | default('inactive') != 'active'
+              or service_state.UnitFileState | default('disabled') != 'enabled'
+
+    - name: Apply the configuration and start the service
+      when: not ansible_check_mode
+      block:
+        # A failed stop must leave the pending configuration changes available for the next attempt.
+        - name: Stop the service before replacing its configuration
+          ansible.builtin.systemd_service:
+            name: "{{ service.name }}"
+            scope: user
+            state: stopped
+          when:
+            - service_needs_restart
+            - service_state.LoadState | default('not-found') == 'loaded'
+
+        - name: Install the service definition and configuration
+          ansible.builtin.copy:
+            src: "{{ service_file.src }}"
+            dest: "{{ service_file.dest }}"
+            backup: true
+            mode: "0600"
+          loop: "{{ service_files }}"
+          loop_control:
+            loop_var: service_file
+            label: "{{ service_file.dest }}"
+          diff: false # keep service credentials out of the installation log
+
+        # A new configuration needs fresh startup attempts after earlier failures.
+        - name: Reset the service startup failure state
+          environment:
+            LC_ALL: C
+          ansible.builtin.command:
+            argv: [/usr/bin/systemctl, --user, reset-failed, --, "{{ service.name }}"]
+          register: service_reset
+          changed_when: service_reset.rc == 0
+          # Unloaded units have already discarded their startup counters.
+          failed_when: service_reset.rc != 0 and 'not loaded' not in service_reset.stderr
+          when:
+            - service_state.LoadState | default('not-found') == 'loaded'
+            - service_needs_restart or service_state.ActiveState == 'failed'
+
+        # A stopped service must start even when its files are already installed.
+        - name: Enable and start the user service
+          ansible.builtin.systemd_service:
+            name: "{{ service.name }}"
+            scope: user
+            # A running service can still be disabled for the next login.
+            enabled: true
+            # An earlier interrupted update may have left the manager using an older definition.
+            daemon_reload: "{{ service_needs_restart }}"
+            state: started
+
+    - name: Check HTTP service readiness
+      when:
+        - not ansible_check_mode
+        - service.health_url is defined
+      block:
+        - name: Wait for the service to respond
+          ansible.builtin.uri:
+            url: "{{ service.health_url }}"
+            use_proxy: false # contact the local service directly even when a proxy is configured
+            status_code: 200
+            timeout: 5 # local services should respond promptly once they have started
+          register: service_health
+          until: service_health is succeeded
+          retries: 15 # allow the application time to finish starting before reporting a failure
+          delay: 2
+
+        - name: Read the current service process ID
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/systemctl
+              - --user
+              - show
+              - --property=MainPID
+              - --value
+              - --
+              - "{{ service.name }}"
+          register: service_process
+          changed_when: false
+          failed_when: service_process.rc != 0 or service_process.stdout | int <= 0
+
+        # A response from another process must not count as a successful service start.
+        - name: Check that the service owns its listening port
+          vars:
+            default_port: "{{ 443 if service.health_url.startswith('https://') else 80 }}"
+            service_port: "{{ service.health_url | urlsplit('port') or default_port }}"
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/lsof
+              - -nP
+              - -a # require the process and port filters to match together
+              - -p
+              - "{{ service_process.stdout }}"
+              - "-iTCP:{{ service_port }}"
+              - -sTCP:LISTEN
+          changed_when: false
+
+    - name: Check that the service is still running
+      ansible.builtin.command:
+        argv: [/usr/bin/systemctl, --user, is-active, --, "{{ service.name }}"]
+      changed_when: false
+      when: not ansible_check_mode
