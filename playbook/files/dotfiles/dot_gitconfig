@@ -36,8 +36,8 @@
   ui = auto
 
 [commit]
-  # Enable signing in `~/.gitconfig.local` after restoring your private key.
-  gpgsign = false
+  # Keep commit authorship verifiable.
+  gpgsign = true
 
 [core]
   # Set the preferred text editor on the current machine.
