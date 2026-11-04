@@ -11,7 +11,8 @@ This repository contains an Ansible playbook for configuring Fedora on my local 
 - Write one command per line. Put `then` and `do` on their own lines.
 - Keep the playbook, scripts, and README synchronized.
 - Write short, simple comments that explain why.
-- Do not use semicolons or backticks in comments. Use simple sentences.
+- Write comments as simple sentences without semicolons.
+- Use backticks for literal code references, including commands, variables, configuration keys, paths, filenames, extensions, flags, and values.
 
 # Checks
 
