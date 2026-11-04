@@ -1,0 +1,127 @@
+---
+- name: Install the user program
+  vars:
+    program_directory: "{{ sources_location }}/{{ program.name }}"
+    build_required: "{{ program.build | default(false) }}"
+
+    # Share per-file paths so checks and installation always refer to the same files.
+    source_file: "{{ program_directory }}/{{ program_file.src }}"
+    destination_file: "{{ scripts_location }}/{{ program_file.name }}"
+  block:
+    # A directory destination would make `copy` use a different filename.
+    - name: Check the destinations for the program files
+      ansible.builtin.assert:
+        that: destination_file is not exists or destination_file is file
+        fail_msg: >-
+          The program needs `{{ destination_file }}` to be a file.
+          Move the existing item aside and run this playbook again.
+        quiet: true
+      loop: "{{ program.files }}"
+      loop_control:
+        loop_var: program_file
+        label: "{{ program_file.name }}"
+
+    - name: Download the reviewed program source
+      ansible.builtin.git:
+        repo: "{{ program.repo }}"
+        version: "{{ program.revision }}"
+        dest: "{{ program_directory }}"
+      register: program_source
+
+    # Allow build retries even when the source revision has not changed.
+    # Changes to installed programs are reported by the copy task below.
+    - name: Build and test the native program
+      when:
+        - build_required
+        - not ansible_check_mode
+      block:
+        - name: Configure the release build
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/cmake
+              - -S
+              - "{{ program_directory }}"
+              - -B
+              - "{{ program_directory }}/build"
+              - -DCMAKE_BUILD_TYPE=Release
+              - -DBUILD_TESTING=ON
+              # Keep the test build compatible with newer system headers.
+              - '-DCMAKE_C_FLAGS=-m64 -isystem "{{ program_directory }}"'
+              - -DCMAKE_CXX_FLAGS=-m64 # override architectures left in an existing build cache
+          changed_when: false
+
+        # Old files must not hide missing build outputs.
+        - name: Remove the previous build outputs
+          ansible.builtin.file:
+            path: "{{ source_file }}"
+            state: absent
+          loop: "{{ program.files }}"
+          loop_control:
+            loop_var: program_file
+            label: "{{ program_file.src }}"
+          changed_when: false
+
+        - name: Compile the executable
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/cmake
+              - --build
+              - "{{ program_directory }}/build"
+              - --config
+              - Release
+          changed_when: false
+
+        - name: Run the program tests before installation
+          ansible.builtin.command:
+            argv:
+              - /usr/bin/ctest
+              - --test-dir
+              - "{{ program_directory }}/build"
+              - --build-config
+              - Release
+              - --output-on-failure
+              - --no-tests=error # an empty test suite must not count as a successful check
+          changed_when: false
+
+    # Check mode leaves the source unchanged, so existing files may belong to a different revision.
+    - name: Check and install files from the current source revision
+      when: not ansible_check_mode or not program_source.changed
+      block:
+        # A preview cannot validate the output of a build it does not run.
+        - name: Check that the program files are available
+          ansible.builtin.assert:
+            that: source_file is file
+            fail_msg: >-
+              The path `{{ source_file }}` must point to a program file.
+              Check the expected file path in the program settings, then run this playbook again.
+            quiet: true
+          loop: "{{ program.files }}"
+          loop_control:
+            loop_var: program_file
+            label: "{{ program_file.name }}"
+          when: not ansible_check_mode or not build_required
+
+        - name: Install the program files
+          ansible.builtin.copy:
+            src: "{{ source_file }}"
+            dest: "{{ destination_file }}"
+            backup: true
+            mode: "0755"
+          loop: "{{ program.files }}"
+          loop_control:
+            loop_var: program_file
+            label: "{{ program_file.name }}"
+          when: not ansible_check_mode or source_file is file
+
+    # A preview cannot copy files that have not been downloaded or built yet.
+    - name: Show which program files will be installed
+      ansible.builtin.debug:
+        msg: "The command `{{ program_file.name }}` will be installed for your account."
+      changed_when: true # include files that will become available after downloading or building
+      loop: "{{ program.files }}"
+      loop_control:
+        loop_var: program_file
+        label: "{{ program_file.name }}"
+      when:
+        - ansible_check_mode
+        - program_source.changed or source_file is not file
