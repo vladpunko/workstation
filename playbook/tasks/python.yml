@@ -79,6 +79,8 @@
             - name: Create a temporary file for the Miniconda installer
               ansible.builtin.tempfile:
                 state: file
+                # The installer requires a `.sh` extension to run.
+                suffix: .sh
               register: miniconda_installer
 
             - name: Download the Miniconda installer
