@@ -64,6 +64,7 @@
           ansible.builtin.group:
             name: docker
             state: present
+          register: docker_group
 
         - name: Grant the current user access to Docker
           ansible.builtin.user:
@@ -71,6 +72,8 @@
             groups: docker
             # Preserve the user's other group memberships.
             append: true
+          # A preview does not create the group needed for user membership.
+          when: not ansible_check_mode or not docker_group.changed
 
         - name: Start Docker and enable it at boot
           # Keep Docker available after a system restart.
@@ -78,7 +81,10 @@
             name: docker.service
             enabled: true
             state: started
-          when: ansible_facts.service_mgr == "systemd"
+          when:
+            - ansible_facts.service_mgr == "systemd"
+            # A preview may run before Docker is installed.
+            - not ansible_check_mode or '/usr/lib/systemd/system/docker.service' is file
 
     - name: Include GNOME desktop tasks
       ansible.builtin.import_tasks: tasks/gnome_desktop.yml
