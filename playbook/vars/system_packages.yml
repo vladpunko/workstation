@@ -51,6 +51,7 @@ required_packages:
   - ioping
   - iotop
   - jetbrains-mono-fonts # as a highly readable typeface for programming
+  - keepassxc
   - kernel-devel
   - kernel-headers
   - less
